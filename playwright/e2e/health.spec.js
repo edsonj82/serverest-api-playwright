@@ -1,0 +1,27 @@
+// @ts-check
+import { test, expect } from '@playwright/test';
+
+test('it should show list of  registered users', async ({ request }) => {
+  
+    const response = await request.get('https://serverest.dev/usuarios');
+    
+    // const user = [
+    //   nome: 'Fulano da Silva',
+    //   email: 'beltrano@qa.com.br',
+    //   password: 'admin1234',
+    //   administrador: 'true',
+    //   _id: '1AmGIy7FkEaltWdO'
+    // ]
+    
+    expect(response.status()).toBe(200);
+    const body = await response.json();
+    expect(body.quantidade).toBeGreaterThan(0);
+    // expect(body.usuarios).toContainEqual(user);
+    expect(body.usuarios[0]).toHaveProperty('nome');
+    expect(body.usuarios[0]).toHaveProperty('email');
+    expect(body.usuarios[0]).toHaveProperty('password');
+    expect(body.usuarios[0]).toHaveProperty('administrador');
+    expect(body.usuarios[0]).toHaveProperty('_id');
+      
+});
+
