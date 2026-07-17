@@ -1,14 +1,21 @@
 // @ts-check
 import { test, expect } from '@playwright/test';
+import { faker } from '@faker-js/faker';
 
 //User API tests
 test.describe('POST /usuarios', () => {
 
     test('it should create a new user', async ({ request }) => {
 
+        //const fullName = faker.person.firstName() + ' ' + faker.person.lastName();
+        const firstName = faker.person.firstName();
+        const lastName = faker.person.lastName();
+        const fullName = `${firstName} ${lastName}`;
+
         const user = {
-            nome: 'Fulano da Silva',
-            email: 'fulano@qa.com.br',
+            nome: fullName,
+            //email: faker.internet.email({ firstName: fullName.split(' ')[0], lastName: fullName.split(' ')[1] }),
+            email: faker.internet.email({ firstName, lastName }).toLowerCase(),
             password: 'admin1234',
             administrador: 'true'
         };
