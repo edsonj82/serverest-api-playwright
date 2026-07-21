@@ -215,6 +215,31 @@ test.describe('POST /usuarios', () => {
         expect(responseBody.email).toBe('email não pode ficar em branco');
     });
 
+    test('email field should be valid', async ({ request }) => {
+
+        const firstName = faker.person.firstName();
+        const lastName = faker.person.lastName();
+        const fullName = `${firstName} ${lastName}`;
+
+        const user = {
+            nome: fullName,
+            email: "invalid-email",
+            password: 'admin1234',
+            administrador: 'true'
+        };
+
+        const response = await request.post('https://serverest.dev/usuarios', {
+            data: user
+        });
+
+        expect(response.status()).toBe(400);
+
+        const responseBody = await response.json();
+
+        console.log('Response body:', responseBody); // Adicione esta linha para depuração
+        expect(responseBody.email).toBe('email deve ser um email válido');
+    });
+
     test('email field is required', async ({ request }) => {
 
         const firstName = faker.person.firstName();
