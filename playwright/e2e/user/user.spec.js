@@ -290,7 +290,7 @@ test.describe('POST /usuarios', () => {
         expect(responseBody.password).toBe('password é obrigatório');
     });
 
-    test('administrador field should not be empty', async ({ request }) => {
+    test('administrador field should be "true" or "false"', async ({ request }) => {
 
         const firstName = faker.person.firstName();
         const lastName = faker.person.lastName();
@@ -312,7 +312,7 @@ test.describe('POST /usuarios', () => {
         const responseBody = await response.json();
 
         console.log('Response body:', responseBody); // Adicione esta linha para depuração
-        expect(responseBody.administrador).toBe('administrador não pode ficar em branco');
+        expect(responseBody.administrador).toBe("administrador deve ser 'true' ou 'false'");
     });
 
     test('administrador field is required', async ({ request }) => {
