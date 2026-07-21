@@ -140,4 +140,31 @@ test.describe('POST /usuarios', () => {
         // é EXATAMENTE igual ao número real de itens dentro da lista
         expect(body.quantidade).toBe(body.usuarios.length);
     });
+
+
+    test('name field should not be empty', async ({ request }) => {
+
+        const firstName = faker.person.firstName();
+        const lastName = faker.person.lastName();
+        // const fullName = `${firstName} ${lastName}`;
+
+        const user = {
+            nome: "",
+            email: faker.internet.email({ firstName, lastName }).toLowerCase(),
+            password: 'admin1234',
+            administrador: 'true'
+        };
+
+        const response = await request.post('https://serverest.dev/usuarios', {
+            data: user
+        });
+
+        expect(response.status()).toBe(400);
+
+        const responseBody = await response.json();
+
+        console.log('Response body:', responseBody); // Adicione esta linha para depuração
+        expect(responseBody.nome).toBe('nome não pode ficar em branco');
+    });
+
 });
