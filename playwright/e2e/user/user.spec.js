@@ -7,6 +7,15 @@ test.describe('POST /usuarios', () => {
 
     let userId, nome, email, password, administrador;// 1. Declaramos a variável vazia no escopo do describe
 
+    const invalidEmailScenarios = [// Matriz de cenários (Scenario Outline / Data Table)
+        { email: 'email-without-at.com', reason: 'missing @ symbol' },
+        { email: '@domain.com', reason: 'missing username before @' },
+        { email: 'user@.com', reason: 'missing domain after @' },
+        { email: 'user@domain', reason: 'missing TLD (.com, .io, etc)' },
+        { email: 'user @domain.com', reason: 'contains space' },
+        { email: '', reason: 'empty email' }
+    ];
+
     test('it should create a new user', async ({ request }) => {
 
         //const fullName = faker.person.firstName() + ' ' + faker.person.lastName();
@@ -263,6 +272,37 @@ test.describe('POST /usuarios', () => {
 
         console.log('Response body:', responseBody); // Adicione esta linha para depuração
         expect(responseBody.email).toBe('email é obrigatório');
+    });
+
+    invalidEmailScenarios.forEach(({ email, reason }) => {// Iteramos criando um teste para cada cenário
+
+        test(`should reject invalid email: ${reason} ('${email}')`, async ({ request }) => {
+            const firstName = faker.person.firstName();
+            const lastName = faker.person.lastName();
+
+            const user = {
+                nome: `${firstName} ${lastName}`,
+                email: email,
+                password: 'admin1234',
+                administrador: 'true'
+            };
+
+            const response = await request.post('https://serverest.dev/usuarios', {
+                data: user
+            });
+
+            expect(response.status()).toBe(400);
+
+            const responseBody = await response.json();
+
+            // Dependendo se o e-mail for totalmente vazio ou mal formatado, 
+            // a API do ServeRest costuma retornar a mensagem no campo correspondente
+            if (email === '') {
+                expect(responseBody.email).toBe('email não pode ficar em branco');
+            } else {
+                expect(responseBody.email).toBe('email deve ser um email válido');
+            }
+        });
     });
 
     test('password field should not be empty', async ({ request }) => {
