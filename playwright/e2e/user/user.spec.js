@@ -190,7 +190,7 @@ test.describe('POST /usuarios', () => {
         expect(responseBody.nome).toBe('nome é obrigatório');
     });
 
-        test('email field should not be empty', async ({ request }) => {
+    test('email field should not be empty', async ({ request }) => {
 
         const firstName = faker.person.firstName();
         const lastName = faker.person.lastName();
@@ -213,5 +213,54 @@ test.describe('POST /usuarios', () => {
 
         console.log('Response body:', responseBody); // Adicione esta linha para depuração
         expect(responseBody.email).toBe('email não pode ficar em branco');
+    });
+
+    test('name field is required', async ({ request }) => {
+
+        const firstName = faker.person.firstName();
+        const lastName = faker.person.lastName();
+        // const fullName = `${firstName} ${lastName}`;
+
+        const user = {
+            email: faker.internet.email({ firstName, lastName }).toLowerCase(),
+            password: 'admin1234',
+            administrador: 'true'
+        };
+
+        const response = await request.post('https://serverest.dev/usuarios', {
+            data: user
+        });
+
+        expect(response.status()).toBe(400);
+
+        const responseBody = await response.json();
+
+        console.log('Response body:', responseBody); // Adicione esta linha para depuração
+        expect(responseBody.nome).toBe('nome é obrigatório');
+    });
+
+    test('email field is required', async ({ request }) => {
+
+        const firstName = faker.person.firstName();
+        const lastName = faker.person.lastName();
+        const fullName = `${firstName} ${lastName}`;
+
+        const user = {
+            nome: fullName,
+            // email: "",
+            password: 'admin1234',
+            administrador: 'true'
+        };
+
+        const response = await request.post('https://serverest.dev/usuarios', {
+            data: user
+        });
+
+        expect(response.status()).toBe(400);
+
+        const responseBody = await response.json();
+
+        console.log('Response body:', responseBody); // Adicione esta linha para depuração
+        expect(responseBody.email).toBe('email é obrigatório');
     });
 });
