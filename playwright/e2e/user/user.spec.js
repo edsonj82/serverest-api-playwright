@@ -36,7 +36,7 @@ test.describe('POST /usuarios', () => {
         expect(responseBody).not.toHaveProperty('administrador');
 
     });
-
+    //GET{id}
     test('it should show user details by ID', async ({ request }) => {
         const firstName = faker.person.firstName();
         const lastName = faker.person.lastName();
@@ -118,7 +118,7 @@ test.describe('POST /usuarios', () => {
         const duplicateResponseBody = await duplicateResponse.json();
         expect(duplicateResponseBody).toHaveProperty('message', 'Este email já está sendo usado');
     });
-
+    //GET
     test('it should show list of registered users', async ({ request }) => {
 
         const response = await request.get('https://serverest.dev/usuarios');
@@ -288,5 +288,30 @@ test.describe('POST /usuarios', () => {
 
         console.log('Response body:', responseBody); // Adicione esta linha para depuração
         expect(responseBody.password).toBe('password é obrigatório');
+    });
+
+    test('administrador field should not be empty', async ({ request }) => {
+
+        const firstName = faker.person.firstName();
+        const lastName = faker.person.lastName();
+        const fullName = `${firstName} ${lastName}`;
+
+        const user = {
+            nome: fullName,
+            email: faker.internet.email({ firstName, lastName }).toLowerCase(),
+            password: 'admin1234',
+            administrador: ''
+        };
+
+        const response = await request.post('https://serverest.dev/usuarios', {
+            data: user
+        });
+
+        expect(response.status()).toBe(400);
+
+        const responseBody = await response.json();
+
+        console.log('Response body:', responseBody); // Adicione esta linha para depuração
+        expect(responseBody.administrador).toBe('administrador não pode ficar em branco');
     });
 });
