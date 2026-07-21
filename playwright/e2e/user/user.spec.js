@@ -314,4 +314,28 @@ test.describe('POST /usuarios', () => {
         console.log('Response body:', responseBody); // Adicione esta linha para depuração
         expect(responseBody.administrador).toBe('administrador não pode ficar em branco');
     });
+
+    test('administrador field is required', async ({ request }) => {
+
+        const firstName = faker.person.firstName();
+        const lastName = faker.person.lastName();
+        const fullName = `${firstName} ${lastName}`;
+
+        const user = {
+            nome: fullName,
+            email: faker.internet.email({ firstName, lastName }).toLowerCase(),
+            // administrador: 'true'
+        };
+
+        const response = await request.post('https://serverest.dev/usuarios', {
+            data: user
+        });
+
+        expect(response.status()).toBe(400);
+
+        const responseBody = await response.json();
+
+        console.log('Response body:', responseBody); // Adicione esta linha para depuração
+        expect(responseBody.password).toBe('password é obrigatório');
+    });
 });
