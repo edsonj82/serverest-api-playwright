@@ -469,4 +469,13 @@ test.describe('GET /usuarios/{id}', () => {
         const responseBody = await response.json();
         expect(responseBody.id).toBe('id deve ser uma string');
     });
+
+    test('it should return 400 when ID contains special characters', async ({ request }) => {
+        const specialCharId = '1234!@#$%^&*()';
+        const response = await request.get(`https://serverest.dev/usuarios/${specialCharId}`);
+
+        expect(response.status()).toBe(400);
+        const responseBody = await response.json();
+        expect(responseBody.id).toBe('id deve ter exatamente 16 caracteres alfanuméricos');
+    });
 });
