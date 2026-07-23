@@ -502,4 +502,12 @@ test.describe('GET /usuarios/{id}', () => {
         const responseBody = await response.json();
         expect(responseBody.id).toBe('id deve ter exatamente 16 caracteres alfanuméricos');
     });
+
+    test('it should return 400 when ID is undefined', async ({ request }) => {
+        const undefinedId = undefined;
+        const response = await request.get(`https://serverest.dev/usuarios/${undefinedId}`);
+        expect(response.status()).toBe(400);
+        const responseBody = await response.json();
+        expect(responseBody.id).toBe('id deve ter exatamente 16 caracteres alfanuméricos');
+    });
 });
