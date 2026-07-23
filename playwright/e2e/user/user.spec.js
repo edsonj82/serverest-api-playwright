@@ -429,4 +429,14 @@ test.describe('GET /usuarios/{id}', () => {
         const responseBody = await response.json();
         expect(responseBody.id).toBe('id deve ter exatamente 16 caracteres alfanuméricos');
     });
+
+    test('it should return 400 when ID is empty', async ({ request }) => {
+        const emptyId = '';
+        const response = await request.get(`https://serverest.dev/usuarios/${emptyId}`);
+
+        expect(response.status()).toBe(400);
+
+        const responseBody = await response.json();
+        expect(responseBody.id).toBe('id não pode ficar em branco');
+    });
 });
