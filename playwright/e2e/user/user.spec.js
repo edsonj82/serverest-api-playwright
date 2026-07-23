@@ -439,4 +439,26 @@ test.describe('GET /usuarios/{id}', () => {
         const responseBody = await response.json();
         expect(responseBody.id).toBe('id não pode ficar em branco');
     });
+
+    test('it should return 400 when ID is not provided', async ({ request }) => {
+        const response = await request.get(`https://serverest.dev/usuarios/`);
+
+        expect(response.status()).toBe(200);
+
+        const responseBody = await response.json();
+        // expect(responseBody.id).toBe('id não pode ficar em branco');
+
+        expect(responseBody.quantidade).toBeGreaterThan(0); // Garantimos que a lista não está vazia (maior que 0)
+
+        responseBody.usuarios.forEach(user => {//Iteramos por todos os usuários para validar a estrutura dos dados
+            expect(user).toHaveProperty('nome');
+            expect(user).toHaveProperty('email');
+            expect(user).toHaveProperty('password');
+            expect(user).toHaveProperty('administrador');
+            expect(user).toHaveProperty('_id');
+        });
+
+        expect(responseBody.quantidade).toBe(responseBody.usuarios.length);
+    });
+
 });
