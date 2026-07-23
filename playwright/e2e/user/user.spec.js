@@ -127,28 +127,6 @@ test.describe('POST /usuarios', () => {
         const duplicateResponseBody = await duplicateResponse.json();
         expect(duplicateResponseBody).toHaveProperty('message', 'Este email já está sendo usado');
     });
-    //GET
-    test('it should show list of registered users', async ({ request }) => {
-
-        const response = await request.get('https://serverest.dev/usuarios');
-
-        expect(response.status()).toBe(200);
-
-        const body = await response.json();
-        expect(body.quantidade).toBeGreaterThan(0); // Garantimos que a lista não está vazia (maior que 0)
-
-        body.usuarios.forEach(user => {//Iteramos por todos os usuários para validar a estrutura dos dados
-            expect(user).toHaveProperty('nome');
-            expect(user).toHaveProperty('email');
-            expect(user).toHaveProperty('password');
-            expect(user).toHaveProperty('administrador');
-            expect(user).toHaveProperty('_id');
-        });
-
-        // Validamos se o total reportado no campo 'quantidade' 
-        // é EXATAMENTE igual ao número real de itens dentro da lista
-        expect(body.quantidade).toBe(body.usuarios.length);
-    });
 
     test('name field should not be empty', async ({ request }) => {
 
@@ -275,7 +253,6 @@ test.describe('POST /usuarios', () => {
     });
 
     invalidEmailScenarios.forEach(({ email, reason }) => {// Iteramos criando um teste para cada cenário
-
         test(`should reject invalid email: ${reason} ('${email}')`, async ({ request }) => {
             const firstName = faker.person.firstName();
             const lastName = faker.person.lastName();
@@ -402,5 +379,30 @@ test.describe('POST /usuarios', () => {
 
         console.log('Response body:', responseBody); // Adicione esta linha para depuração
         expect(responseBody.password).toBe('password é obrigatório');
+    });
+});
+
+test.describe('GET /usuarios', () => {
+    //GET
+    test('it should show list of registered users', async ({ request }) => {
+
+        const response = await request.get('https://serverest.dev/usuarios');
+
+        expect(response.status()).toBe(200);
+
+        const body = await response.json();
+        expect(body.quantidade).toBeGreaterThan(0); // Garantimos que a lista não está vazia (maior que 0)
+
+        body.usuarios.forEach(user => {//Iteramos por todos os usuários para validar a estrutura dos dados
+            expect(user).toHaveProperty('nome');
+            expect(user).toHaveProperty('email');
+            expect(user).toHaveProperty('password');
+            expect(user).toHaveProperty('administrador');
+            expect(user).toHaveProperty('_id');
+        });
+
+        // Validamos se o total reportado no campo 'quantidade' 
+        // é EXATAMENTE igual ao número real de itens dentro da lista
+        expect(body.quantidade).toBe(body.usuarios.length);
     });
 });
