@@ -486,4 +486,12 @@ test.describe('GET /usuarios/{id}', () => {
         const responseBody = await response.json();
         expect(responseBody.id).toBe('id deve ter exatamente 16 caracteres alfanuméricos');
     });
+
+    test('it should return 400 when ID contains non-alphanumeric characters', async ({ request }) => {
+        const nonAlphanumericId = '1234-5678-9012-3456';
+        const response = await request.get(`https://serverest.dev/usuarios/${nonAlphanumericId}`);
+        expect(response.status()).toBe(400);
+        const responseBody = await response.json();
+        expect(responseBody.id).toBe('id deve ter exatamente 16 caracteres alfanuméricos');
+    });
 });
