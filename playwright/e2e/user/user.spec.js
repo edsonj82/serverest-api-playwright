@@ -418,6 +418,14 @@ test.describe('GET /usuarios', () => {
         const responseBody = await response.json();
         expect(responseBody).toHaveProperty('message', 'Endpoint não encontrado');
     });
+
+    test('it should return 404 for invalid endpoint with ID, query parameters, and trailing slash', async ({ request }) => {
+        const invalidId = '1234567890123456';
+        const response = await request.get(`https://serverest.dev/usuarios-invalid-endpoint/${invalidId}/?param=value`);
+        expect(response.status()).toBe(404);
+        const responseBody = await response.json();
+        expect(responseBody).toHaveProperty('message', 'Endpoint não encontrado');
+    });
 });
 
 test.describe('GET /usuarios/{id}', () => {
