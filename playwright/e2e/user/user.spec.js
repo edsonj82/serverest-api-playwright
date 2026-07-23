@@ -341,6 +341,31 @@ test.describe('POST /usuarios', () => {
         console.log('Response body:', responseBody); // Adicione esta linha para depuração
         expect(responseBody.password).toBe('password é obrigatório');
     });
+
+    test('it should return 404 for invalid endpoint', async ({ request }) => {
+        const response = await request.post('https://serverest.dev/usuarios-invalid-endpoint', {
+            data: {
+                nome: 'Test User',
+                email: 'test@example.com'
+            }
+        });
+        expect(response.status()).toBe(404);
+        const responseBody = await response.json();
+        expect(responseBody).toHaveProperty('message', 'Endpoint não encontrado');
+    });
+
+    test('it should return 404 for invalid endpoint with ID', async ({ request }) => {
+        const invalidId = '1234567890123456';
+        const response = await request.post(`https://serverest.dev/usuarios-invalid-endpoint/${invalidId}`, {
+            data: {
+                nome: 'Test User',
+                email: 'test@example.com'
+            }
+        });
+        expect(response.status()).toBe(404);
+        const responseBody = await response.json();
+        expect(responseBody).toHaveProperty('message', 'Endpoint não encontrado');
+    });
 });
 
 test.describe('GET /usuarios', () => {
