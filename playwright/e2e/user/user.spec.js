@@ -461,4 +461,12 @@ test.describe('GET /usuarios/{id}', () => {
         expect(responseBody.quantidade).toBe(responseBody.usuarios.length);
     });
 
+    test('it should return 400 when ID is not a string', async ({ request }) => {
+        const nonStringId = 1234567890123456;
+        const response = await request.get(`https://serverest.dev/usuarios/${nonStringId}`);
+
+        expect(response.status()).toBe(400);
+        const responseBody = await response.json();
+        expect(responseBody.id).toBe('id deve ser uma string');
+    });
 });
