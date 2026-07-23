@@ -494,4 +494,12 @@ test.describe('GET /usuarios/{id}', () => {
         const responseBody = await response.json();
         expect(responseBody.id).toBe('id deve ter exatamente 16 caracteres alfanuméricos');
     });
+
+    test('it should return 400 when ID is null', async ({ request }) => {
+        const nullId = null;
+        const response = await request.get(`https://serverest.dev/usuarios/${nullId}`);
+        expect(response.status()).toBe(400);
+        const responseBody = await response.json();
+        expect(responseBody.id).toBe('id deve ter exatamente 16 caracteres alfanuméricos');
+    });
 });
