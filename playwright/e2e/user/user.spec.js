@@ -366,6 +366,15 @@ test.describe('GET /usuarios', () => {
         // é EXATAMENTE igual ao número real de itens dentro da lista
         expect(body.quantidade).toBe(body.usuarios.length);
     });
+
+    test('it should return 400 for non-existent user ID', async ({ request }) => {
+        const nonExistentUserId = 'nonexistentid123';
+        const response = await request.get(`https://serverest.dev/usuarios/${nonExistentUserId}`);
+        expect(response.status()).toBe(400);
+
+        const responseBody = await response.json();
+        expect(responseBody).toHaveProperty('message', 'Usuário não encontrado');
+    });
 });
 
 test.describe('GET /usuarios/{id}', () => {
