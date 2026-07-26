@@ -611,3 +611,52 @@ test.describe('GET /usuarios/{id}', () => {
         expect(responseBody.id).toBe('id deve ter exatamente 16 caracteres alfanuméricos');
     });
 });
+
+test.describe('PUT /usuarios/{id}', () => {
+    let userId;
+
+    test('it should update user details by ID', async ({ request }) => {
+        const firstName = faker.person.firstName();
+        const lastName = faker.person.lastName();
+        const fullName = `${firstName} ${lastName}`;
+
+        const user = {
+            nome: fullName,
+            email: faker.internet.email({ firstName, lastName }).toLowerCase(),
+            password: 'admin1234',
+            administrador: 'true'
+        };
+
+        const createResponse = await request.post('https://serverest.dev/usuarios', {
+            data: user
+        });
+
+        expect(createResponse.status()).toBe(201);
+
+        const createResponseBody = await createResponse.json();
+        userId = createResponseBody._id;
+        const updateData = {
+            nome: `${firstName} Updated ${lastName}`,
+            email: faker.internet.email({ firstName, lastName }).toLowerCase(),
+            password: 'admin1234',
+            administrador: 'false'
+        };
+
+        const updateResponse = await request.put(`https://serverest.dev/usuarios/${userId}`, {
+            data: updateData
+        });
+
+        expect(updateResponse.status()).toBe(200);
+
+        const updateResponseBody = await updateResponse.json();
+
+        expect(updateResponseBody).toHaveProperty('message', 'Registro alterado com sucesso');
+        console.log('Update response body:', updateResponseBody); // Adicione esta linha para depuração
+
+        // expect(updateResponseBody).toHaveProperty('_id', userId);
+        // expect(updateResponseBody).toHaveProperty('nome', updateData.nome);
+        // expect(updateResponseBody).toHaveProperty('email', updateData.email);
+        // expect(updateResponseBody).toHaveProperty('password', updateData.password);
+        // expect(updateResponseBody).toHaveProperty('administrador', updateData.administrador);
+    });
+});
