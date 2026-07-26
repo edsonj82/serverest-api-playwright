@@ -659,4 +659,39 @@ test.describe('PUT /usuarios/{id}', () => {
         // expect(updateResponseBody).toHaveProperty('password', updateData.password);
         // expect(updateResponseBody).toHaveProperty('administrador', updateData.administrador);
     });
+
+    test('it should register a new user when PUT is called with a non-existent ID', async ({ request }) => {
+        // const nonExistentUserId = '0000000000000000';
+        const nonExistentUserId = (() => {
+            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+            let id = '';
+            for (let i = 0; i < 16; i++) {
+                id += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+            console.log("id", id); // Adicione esta linha para depuração
+            return id;
+        })(); // Use a variável gerada aleatoriamente
+
+        const firstName = faker.person.firstName();
+        const lastName = faker.person.lastName();
+        const fullName = `${firstName} ${lastName}`;
+
+        const user = {
+            nome: fullName,
+            email: faker.internet.email({ firstName, lastName }).toLowerCase(),
+            password: 'admin1234',
+            administrador: 'true'
+        };
+        const createResponse = await request.put(`https://serverest.dev/usuarios/${nonExistentUserId}`, {
+            data: user
+        });
+
+        expect(createResponse.status()).toBe(201);
+
+        const createResponseBody = await createResponse.json();
+        expect(createResponseBody).toHaveProperty('message', 'Cadastro realizado com sucesso');
+        expect(createResponseBody).toHaveProperty('_id');
+
+        console.log('Create response body:', createResponseBody); // Adicione esta linha para depuração
+    });
 });
