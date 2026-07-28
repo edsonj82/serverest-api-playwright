@@ -26,7 +26,7 @@ test.describe('POST /usuarios', () => {
             //email: faker.internet.email({ firstName: fullName.split(' ')[0], lastName: fullName.split(' ')[1] }),
             email: faker.internet.email({ firstName, lastName }).toLowerCase(),
             password: 'admin1234',
-            administrador: 'true'
+            administrador: 'false'
         };
 
         const response = await request.post('https://serverest.dev/usuarios', {
@@ -55,7 +55,7 @@ test.describe('POST /usuarios', () => {
             //email: faker.internet.email({ firstName: fullName.split(' ')[0], lastName: fullName.split(' ')[1] }),
             email: faker.internet.email({ firstName, lastName }).toLowerCase(),
             password: 'admin1234',
-            administrador: 'true'
+            administrador: 'false'
         };
 
         const response = await request.post('https://serverest.dev/usuarios', {
