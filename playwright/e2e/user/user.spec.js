@@ -952,4 +952,12 @@ test.describe('DELETE /usuarios/{id}', () => {
         expect(responseBody).toHaveProperty('message', 'Nenhum registro excluído');
     });
 
+    test('it should return 200 when ID is a Date object', async ({ request }) => {
+        const dateId = new Date();
+        const response = await request.delete(`https://serverest.dev/usuarios/${dateId.toISOString()}`);
+        expect(response.status()).toBe(200);
+        const responseBody = await response.json();
+        expect(responseBody).toHaveProperty('message', 'Nenhum registro excluído');
+    });
+
 });
