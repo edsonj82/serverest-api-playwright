@@ -79,7 +79,7 @@ test.describe('POST /usuarios', () => {
                 nome: fullName,
                 email: email,
                 password: 'admin1234',
-                administrador: 'true'
+                administrador: 'false'
             }
         });
 
@@ -99,7 +99,7 @@ test.describe('POST /usuarios', () => {
             nome: "",
             email: faker.internet.email({ firstName, lastName }).toLowerCase(),
             password: 'admin1234',
-            administrador: 'true'
+            administrador: 'false'
         };
 
         const response = await request.post('https://serverest.dev/usuarios', {
@@ -123,7 +123,7 @@ test.describe('POST /usuarios', () => {
         const user = {
             email: faker.internet.email({ firstName, lastName }).toLowerCase(),
             password: 'admin1234',
-            administrador: 'true'
+            administrador: 'false'
         };
 
         const response = await request.post('https://serverest.dev/usuarios', {
@@ -148,7 +148,7 @@ test.describe('POST /usuarios', () => {
             nome: fullName,
             email: "",
             password: 'admin1234',
-            administrador: 'true'
+            administrador: 'false'
         };
 
         const response = await request.post('https://serverest.dev/usuarios', {
@@ -173,7 +173,7 @@ test.describe('POST /usuarios', () => {
             nome: fullName,
             email: "invalid-email",
             password: 'admin1234',
-            administrador: 'true'
+            administrador: 'false'
         };
 
         const response = await request.post('https://serverest.dev/usuarios', {
@@ -198,7 +198,7 @@ test.describe('POST /usuarios', () => {
             nome: fullName,
             // email: "",
             password: 'admin1234',
-            administrador: 'true'
+            administrador: 'false'
         };
 
         const response = await request.post('https://serverest.dev/usuarios', {
@@ -222,7 +222,7 @@ test.describe('POST /usuarios', () => {
                 nome: `${firstName} ${lastName}`,
                 email: email,
                 password: 'admin1234',
-                administrador: 'true'
+                administrador: 'false'
             };
 
             const response = await request.post('https://serverest.dev/usuarios', {
@@ -253,7 +253,7 @@ test.describe('POST /usuarios', () => {
             nome: fullName,
             email: "",
             password: "",
-            administrador: 'true'
+            administrador: 'false'
         };
 
         const response = await request.post('https://serverest.dev/usuarios', {
@@ -278,7 +278,7 @@ test.describe('POST /usuarios', () => {
             nome: fullName,
             email: faker.internet.email({ firstName, lastName }).toLowerCase(),
             // password: 'admin1234',
-            administrador: 'true'
+            administrador: 'false'
         };
 
         const response = await request.post('https://serverest.dev/usuarios', {
@@ -339,7 +339,7 @@ test.describe('POST /usuarios', () => {
         const responseBody = await response.json();
 
         console.log('Response body:', responseBody); // Adicione esta linha para depuração
-        expect(responseBody.password).toBe('password é obrigatório');
+        expect(responseBody.administrador).toBe("administrador é obrigatório");
     });
 
     test('it should return 404 for invalid endpoint', async ({ request }) => {
@@ -466,7 +466,7 @@ test.describe('GET /usuarios/{id}', () => {
             nome: fullName,
             email: faker.internet.email({ firstName, lastName }).toLowerCase(),
             password: 'admin1234',
-            administrador: 'true'
+            administrador: 'false'
         };
 
         const response = await request.post('https://serverest.dev/usuarios', {
@@ -624,7 +624,7 @@ test.describe('PUT /usuarios/{id}', () => {
             nome: fullName,
             email: faker.internet.email({ firstName, lastName }).toLowerCase(),
             password: 'admin1234',
-            administrador: 'true'
+            administrador: 'false'
         };
 
         const createResponse = await request.post('https://serverest.dev/usuarios', {
@@ -680,7 +680,7 @@ test.describe('PUT /usuarios/{id}', () => {
             nome: fullName,
             email: faker.internet.email({ firstName, lastName }).toLowerCase(),
             password: 'admin1234',
-            administrador: 'true'
+            administrador: 'false'
         };
         const createResponse = await request.put(`https://serverest.dev/usuarios/${nonExistentUserId}`, {
             data: user
@@ -704,7 +704,7 @@ test.describe('PUT /usuarios/{id}', () => {
             nome: fullName,
             email: faker.internet.email({ firstName, lastName }).toLowerCase(),
             password: 'admin1234',
-            administrador: 'true'
+            administrador: 'false'
         };
 
         const response = await request.post('https://serverest.dev/usuarios', {
@@ -743,7 +743,7 @@ test.describe('PUT /usuarios/{id}', () => {
                 nome: 'Test User',
                 email: 'test@example.com',
                 password: 'admin1234',
-                administrador: 'true'
+                administrador: 'false'
             }
         });
         expect(response.status()).toBe(405);
@@ -758,7 +758,7 @@ test.describe('PUT /usuarios/{id}', () => {
                 nome: 'Test User',
                 email: 'test@example.com',
                 password: 'admin1234',
-                administrador: 'true'
+                administrador: 'false'
             }
         });
         expect(response.status()).toBe(405);
@@ -773,7 +773,7 @@ test.describe('PUT /usuarios/{id}', () => {
                 nome: 'Test User',
                 email: 'test@example.com',
                 password: 'admin1234',
-                administrador: 'true'
+                administrador: 'false'
             }
         });
         expect(response.status()).toBe(405);
