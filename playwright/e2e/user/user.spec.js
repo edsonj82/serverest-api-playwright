@@ -781,3 +781,31 @@ test.describe('PUT /usuarios/{id}', () => {
         expect(responseBody).toHaveProperty('message', `Não é possível realizar PUT em /${idInvalidEndpoint}?param=value. Acesse https://serverest.dev para ver as rotas disponíveis e como utilizá-las.`);
     });
 });
+
+test.describe('DELETE /usuarios/{id}', () => {
+    test('it should delete user by ID', async ({ request }) => {
+        const firstName = faker.person.firstName();
+        const lastName = faker.person.lastName();
+        const fullName = `${firstName} ${lastName}`;
+
+        const user = {
+            nome: fullName,
+            email: faker.internet.email({ firstName, lastName }).toLowerCase(),
+            password: 'admin1234',
+            administrador: 'false'
+        };
+        const createResponse = await request.post('https://serverest.dev/usuarios', {
+            data: user
+        });
+        expect(createResponse.status()).toBe(201);
+
+        const createResponseBody = await createResponse.json();
+        const userId = createResponseBody._id;
+
+        const deleteResponse = await request.delete(`https://serverest.dev/usuarios/${userId}`);
+        expect(deleteResponse.status()).toBe(200);
+
+        const deleteResponseBody = await deleteResponse.json();
+        expect(deleteResponseBody).toHaveProperty('message', 'Registro excluído com sucesso');
+    });
+});
