@@ -872,4 +872,12 @@ test.describe('DELETE /usuarios/{id}', () => {
         const responseBody = await response.json();
         expect(responseBody).toHaveProperty('message', 'Nenhum registro excluído');
     });
+
+    test('it should return 200 when ID is null', async ({ request }) => {
+        const nullId = null;
+        const response = await request.delete(`https://serverest.dev/usuarios/${nullId}`);
+        expect(response.status()).toBe(200);
+        const responseBody = await response.json();
+        expect(responseBody).toHaveProperty('message', 'Nenhum registro excluído');
+    });
 });
