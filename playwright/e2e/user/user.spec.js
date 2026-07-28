@@ -694,4 +694,45 @@ test.describe('PUT /usuarios/{id}', () => {
 
         console.log('Create response body:', createResponseBody); // Adicione esta linha para depuração
     });
+
+    test('it should not create a duplicate user', async ({ request }) => {
+        const firstName = faker.person.firstName();
+        const lastName = faker.person.lastName();
+        const fullName = `${firstName} ${lastName}`;
+
+        const user = {
+            nome: fullName,
+            email: faker.internet.email({ firstName, lastName }).toLowerCase(),
+            password: 'admin1234',
+            administrador: 'true'
+        };
+
+        const response = await request.post('https://serverest.dev/usuarios', {
+            data: user
+        });
+
+        expect(response.status()).toBe(201);
+
+        const responseBody = await response.json();
+
+        expect(responseBody).toHaveProperty('message', 'Cadastro realizado com sucesso');
+        expect(responseBody).toHaveProperty('_id');
+        expect(responseBody).not.toHaveProperty('password');
+        expect(responseBody).not.toHaveProperty('administrador');
+
+        const newFakeId = '0000000000000000';
+        const duplicateResponse = await request.put(`https://serverest.dev/usuarios/${newFakeId}`, {// Tentamos criar um usuário com o mesmo email
+            data: {
+                nome: fullName,
+                email: user.email,
+                password: 'admin1234',
+                administrador: 'false'
+            }
+        });
+
+        expect(duplicateResponse.status()).toBe(400);
+
+        const duplicateResponseBody = await duplicateResponse.json();
+        expect(duplicateResponseBody).toHaveProperty('message', 'Este email já está sendo usado');
+    });
 });
