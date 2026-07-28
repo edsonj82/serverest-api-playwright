@@ -864,4 +864,12 @@ test.describe('DELETE /usuarios/{id}', () => {
         const responseBody = await response.json();
         expect(responseBody).toHaveProperty('message', 'Nenhum registro excluído');
     });
+
+    test('it should return 200 when ID contains non-alphanumeric characters', async ({ request }) => {
+        const nonAlphanumericId = '1234-5678-9012-3456';
+        const response = await request.delete(`https://serverest.dev/usuarios/${nonAlphanumericId}`);
+        expect(response.status()).toBe(200);
+        const responseBody = await response.json();
+        expect(responseBody).toHaveProperty('message', 'Nenhum registro excluído');
+    });
 });
