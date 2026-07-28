@@ -783,6 +783,7 @@ test.describe('PUT /usuarios/{id}', () => {
 });
 
 test.describe('DELETE /usuarios/{id}', () => {
+
     test('it should delete user by ID', async ({ request }) => {
         const firstName = faker.person.firstName();
         const lastName = faker.person.lastName();
@@ -807,5 +808,13 @@ test.describe('DELETE /usuarios/{id}', () => {
 
         const deleteResponseBody = await deleteResponse.json();
         expect(deleteResponseBody).toHaveProperty('message', 'Registro excluído com sucesso');
+    });
+
+    test('it should return 200 for valid length ID that does not exist', async ({ request }) => {
+        const nonExistentUserId = '0000000000000000';
+        const response = await request.delete(`https://serverest.dev/usuarios/${nonExistentUserId}`);
+        expect(response.status()).toBe(200);
+        const responseBody = await response.json();
+        expect(responseBody).toHaveProperty('message', 'Nenhum registro excluído');
     });
 });
