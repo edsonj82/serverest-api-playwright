@@ -750,4 +750,19 @@ test.describe('PUT /usuarios/{id}', () => {
         const responseBody = await response.json();
         expect(responseBody).toHaveProperty('message', `Não é possível realizar PUT em /${idInvalidEndpoint}. Acesse https://serverest.dev para ver as rotas disponíveis e como utilizá-las.`);
     });
+
+    test('it should return 405 for invalid endpoint with ID', async ({ request }) => {
+        const idInvalidEndpoint = 'usuarios-invalid-endpoint';
+        const response = await request.put(`https://serverest.dev/${idInvalidEndpoint}/1234567890123456`, {
+            data: {
+                nome: 'Test User',
+                email: 'test@example.com',
+                password: 'admin1234',
+                administrador: 'true'
+            }
+        });
+        expect(response.status()).toBe(405);
+        const responseBody = await response.json();
+        expect(responseBody).toHaveProperty('message', `Não é possível realizar PUT em /${idInvalidEndpoint}/1234567890123456. Acesse https://serverest.dev para ver as rotas disponíveis e como utilizá-las.`);
+    });
 });
