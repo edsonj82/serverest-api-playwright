@@ -840,4 +840,12 @@ test.describe('DELETE /usuarios/{id}', () => {
         const responseBody = await response.json();
         expect(responseBody).toHaveProperty('message', 'Não é possível realizar DELETE em /usuarios/. Acesse https://serverest.dev para ver as rotas disponíveis e como utilizá-las.');
     });
+
+    test('it should return 200 when ID is not a string', async ({ request }) => {
+        const nonStringId = 1234567890123456;
+        const response = await request.delete(`https://serverest.dev/usuarios/${nonStringId}`);
+        expect(response.status()).toBe(200);
+        const responseBody = await response.json();
+        expect(responseBody).toHaveProperty('message', 'Nenhum registro excluído');
+    });
 });
