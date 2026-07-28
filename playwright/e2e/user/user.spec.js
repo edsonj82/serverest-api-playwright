@@ -848,4 +848,12 @@ test.describe('DELETE /usuarios/{id}', () => {
         const responseBody = await response.json();
         expect(responseBody).toHaveProperty('message', 'Nenhum registro excluído');
     });
+
+    test('it should return 200 when ID contains special characters', async ({ request }) => {
+        const specialCharId = '1234!@#$%^&*()';
+        const response = await request.delete(`https://serverest.dev/usuarios/${specialCharId}`);
+        expect(response.status()).toBe(200);
+        const responseBody = await response.json();
+        expect(responseBody).toHaveProperty('message', 'Nenhum registro excluído');
+    });
 });
