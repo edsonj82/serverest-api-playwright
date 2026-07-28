@@ -833,4 +833,11 @@ test.describe('DELETE /usuarios/{id}', () => {
         const responseBody = await response.json();
         expect(responseBody).toHaveProperty('message', 'Não é possível realizar DELETE em /usuarios/. Acesse https://serverest.dev para ver as rotas disponíveis e como utilizá-las.');
     });
+
+    test('it should return 405 when ID is not provided', async ({ request }) => {
+        const response = await request.delete(`https://serverest.dev/usuarios/`);
+        expect(response.status()).toBe(405);
+        const responseBody = await response.json();
+        expect(responseBody).toHaveProperty('message', 'Não é possível realizar DELETE em /usuarios/. Acesse https://serverest.dev para ver as rotas disponíveis e como utilizá-las.');
+    });
 });
