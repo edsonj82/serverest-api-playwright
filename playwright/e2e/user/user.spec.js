@@ -960,4 +960,12 @@ test.describe('DELETE /usuarios/{id}', () => {
         expect(responseBody).toHaveProperty('message', 'Nenhum registro excluído');
     });
 
+    test('it should return 200 when ID is a RegExp object', async ({ request }) => {
+        const regexId = /1234567890123456/;
+        const response = await request.delete(`https://serverest.dev/usuarios/${regexId.toString()}`);
+        expect(response.status()).toBe(200);
+        const responseBody = await response.json();
+        expect(responseBody).toHaveProperty('message', 'Nenhum registro excluído');
+    });
+
 });
