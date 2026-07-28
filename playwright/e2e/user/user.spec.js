@@ -904,4 +904,11 @@ test.describe('DELETE /usuarios/{id}', () => {
         const responseBody = await response.json();
         expect(responseBody).toHaveProperty('message', 'Nenhum registro excluído');
     });
+
+    test('it should return 405 for invalid endpoint', async ({ request }) => {
+        const response = await request.delete('https://serverest.dev/usuarios-invalid-endpoint');
+        expect(response.status()).toBe(405);
+        const responseBody = await response.json();
+        expect(responseBody).toHaveProperty('message', 'Não é possível realizar DELETE em /usuarios-invalid-endpoint. Acesse https://serverest.dev para ver as rotas disponíveis e como utilizá-las.');
+    });
 });
