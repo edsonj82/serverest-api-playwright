@@ -65,4 +65,21 @@ test.describe('User Login', () => {
         expect(loginData).toHaveProperty('message');
         expect(loginData.message).toBe('Email e/ou senha inválidos');
     });
+
+    test('it should fail to log in with empty email', async ({ request }) => {
+        const loginResponse = await request.post('https://serverest.dev/login', {
+            data: {
+                email: '',
+                password: faker.internet.password()
+            }
+        });
+
+        expect(loginResponse.ok()).toBeFalsy();
+        expect(loginResponse.status()).toBe(400);
+
+        const loginData = await loginResponse.json();
+
+        expect(loginData).toHaveProperty('email');
+        expect(loginData.email).toBe('email não pode ficar em branco');
+    });
 });
