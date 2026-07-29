@@ -118,4 +118,59 @@ test.describe('User Login', () => {
         expect(loginData).toHaveProperty('password');
         expect(loginData.password).toBe('password não pode ficar em branco');
     });
+
+    test('should log in successfully with valid credentials and then log out', async ({ request }) => {
+        const firstName = faker.person.firstName();
+        const lastName = faker.person.lastName();
+        const fullName = `${firstName} ${lastName}`;
+        email = faker.internet.email(firstName, lastName);
+        password = faker.internet.password();
+
+        const user = {
+            nome: fullName,
+            email: email,
+            password: password,
+            administrador: 'false'
+        };
+
+        const response = await request.post('https://serverest.dev/usuarios', {
+            data: user
+        });
+
+        expect(response.ok()).toBeTruthy();
+
+        email = user.email;
+        password = user.password;
+
+        const loginResponse = await request.post('https://serverest.dev/login', {
+            data: {
+                email: email,
+                password: password
+            }
+        });
+
+        expect(loginResponse.ok()).toBeTruthy();
+
+        const loginData = await loginResponse.json();
+
+        expect(loginData).toHaveProperty('authorization');
+        authorization = loginData.authorization;
+        expect(authorization).toBeTruthy();
+        expect(loginData).toHaveProperty('message');
+        expect(loginData.message).toBe('Login realizado com sucesso');
+
+        // Now, let's log out
+        const logoutResponse = await request.post('https://serverest.dev/logout', {
+            headers: {
+                'Authorization': authorization
+            }
+        });
+
+        expect(logoutResponse.ok()).toBeTruthy();
+
+        const logoutData = await logoutResponse.json();
+
+        expect(logoutData).toHaveProperty('message');
+        expect(logoutData.message).toBe('Logout realizado com sucesso');
+    });
 });
