@@ -45,4 +45,24 @@ test.describe('User Login', () => {
         expect(loginData).toHaveProperty('message');
         expect(loginData.message).toBe('Login realizado com sucesso');
     });
+
+    test('should fail to log in with invalid credentials', async ({ request }) => {
+        const invalidEmail = faker.internet.email();
+        const invalidPassword = faker.internet.password();
+
+        const loginResponse = await request.post('https://serverest.dev/login', {
+            data: {
+                email: invalidEmail,
+                password: invalidPassword
+            }
+        });
+
+        expect(loginResponse.ok()).toBeFalsy();
+        expect(loginResponse.status()).toBe(401);
+
+        const loginData = await loginResponse.json();
+
+        expect(loginData).toHaveProperty('message');
+        expect(loginData.message).toBe('Email e/ou senha inválidos');
+    });
 });
