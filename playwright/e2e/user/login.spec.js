@@ -3,7 +3,7 @@ import { faker } from '@faker-js/faker';
 
 test.describe('User Login', () => {
 
-    let email, password, authorization;
+    let userId, email, password, authorization;
 
     test('should log in successfully with valid credentials', async ({ request }) => {
         const firstName = faker.person.firstName();
@@ -25,6 +25,7 @@ test.describe('User Login', () => {
 
         expect(response.ok()).toBeTruthy();
 
+        userId = (await response.json())._id;
         email = user.email;
         password = user.password;
 
@@ -172,5 +173,53 @@ test.describe('User Login', () => {
 
         expect(logoutData).toHaveProperty('message');
         expect(logoutData.message).toBe('Logout realizado com sucesso');
+    });
+
+    test('should fail to log in with a deleted user', async ({ request }) => {
+        const firstName = faker.person.firstName();
+        const lastName = faker.person.lastName();
+        const fullName = `${firstName} ${lastName}`;
+        email = faker.internet.email(firstName, lastName);
+        password = faker.internet.password();
+
+        const user = {
+            nome: fullName,
+            email: email,
+            password: password,
+            administrador: 'false'
+        };
+
+        const response = await request.post('https://serverest.dev/usuarios', {
+            data: user
+        });
+
+        expect(response.ok()).toBeTruthy();
+        expect(response.status()).toBe(201);
+
+        userId = (await response.json())._id;
+
+        // Delete the user
+        const deleteResponse = await request.delete(`https://serverest.dev/usuarios/${userId}`, {
+            headers: {
+                'Authorization': `Bearer ${authorization}`
+            }
+        });
+        expect(deleteResponse.ok()).toBeTruthy();
+
+        // Now, try to log in with the deleted user
+        const loginResponse = await request.post('https://serverest.dev/login', {
+            data: {
+                email: email,
+                password: password
+            }
+        });
+
+        expect(loginResponse.ok()).toBeFalsy();
+        expect(loginResponse.status()).toBe(401);
+
+        const loginData = await loginResponse.json();
+
+        expect(loginData).toHaveProperty('message');
+        expect(loginData.message).toBe('Email e/ou senha inválidos');
     });
 });
