@@ -5,7 +5,7 @@ test.describe('User Login', () => {
 
     let userId, email, password, authorization;
 
-    test('should log in successfully with valid credentials', async ({ request }) => {
+    test('it should log in successfully with valid credentials', async ({ request }) => {
         const firstName = faker.person.firstName();
         const lastName = faker.person.lastName();
         const fullName = `${firstName} ${lastName}`;
@@ -47,7 +47,7 @@ test.describe('User Login', () => {
         expect(loginData.message).toBe('Login realizado com sucesso');
     });
 
-    test('should fail to log in with invalid credentials', async ({ request }) => {
+    test('it should fail to log in with invalid credentials', async ({ request }) => {
         const invalidEmail = faker.internet.email();
         const invalidPassword = faker.internet.password();
 
@@ -120,7 +120,7 @@ test.describe('User Login', () => {
         expect(loginData.password).toBe('password não pode ficar em branco');
     });
 
-    test('should log in successfully with valid credentials and then log out', async ({ request }) => {
+    test('it should log in successfully with valid credentials and then log out', async ({ request }) => {
         const firstName = faker.person.firstName();
         const lastName = faker.person.lastName();
         const fullName = `${firstName} ${lastName}`;
@@ -175,7 +175,7 @@ test.describe('User Login', () => {
         expect(logoutData.message).toBe('Logout realizado com sucesso');
     });
 
-    test('should fail to log in with a deleted user', async ({ request }) => {
+    test('it should fail to log in with a deleted user', async ({ request }) => {
         const firstName = faker.person.firstName();
         const lastName = faker.person.lastName();
         const fullName = `${firstName} ${lastName}`;
@@ -211,6 +211,26 @@ test.describe('User Login', () => {
             data: {
                 email: email,
                 password: password
+            }
+        });
+
+        expect(loginResponse.ok()).toBeFalsy();
+        expect(loginResponse.status()).toBe(401);
+
+        const loginData = await loginResponse.json();
+
+        expect(loginData).toHaveProperty('message');
+        expect(loginData.message).toBe('Email e/ou senha inválidos');
+    });
+
+    test('it should fail to log in with a user that does not exist', async ({ request }) => {
+        const nonExistentEmail = faker.internet.email();
+        const nonExistentPassword = faker.internet.password();
+
+        const loginResponse = await request.post('https://serverest.dev/login', {
+            data: {
+                email: nonExistentEmail,
+                password: nonExistentPassword
             }
         });
 
