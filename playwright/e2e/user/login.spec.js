@@ -242,4 +242,38 @@ test.describe('User Login', () => {
         expect(loginData).toHaveProperty('message');
         expect(loginData.message).toBe('Email e/ou senha inválidos');
     });
+
+    test('it should fail to log in with a user that has been deactivated', async ({ request }) => {
+        const firstName = faker.person.firstName();
+        const lastName = faker.person.lastName();
+        const fullName = `${firstName} ${lastName}`;
+        email = faker.internet.email(firstName, lastName);
+        password = faker.internet.password();
+
+        const user = {
+            nome: fullName,
+            email: email,
+            password: password,
+            administrador: 'false'
+        };
+
+        const response = await request.post('https://serverest.dev/usuarios', {
+            data: user
+        });
+        expect(response.ok()).toBeTruthy();
+
+        userId = (await response.json())._id;
+
+        // Deactivate the user
+        const deactivateResponse = await request.put(`https://serverest.dev/usuarios/${userId}`, {
+            headers: {
+                'Authorization': `Bearer ${authorization}`
+            },
+            data: {
+                administrador: 'false',
+                ativo: false
+            }
+        });
+        expect(deactivateResponse.ok()).toBeTruthy();
+    });
 });
