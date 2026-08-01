@@ -62,4 +62,30 @@ test.describe('POST /produtos', () => {
         expect(responseData).toHaveProperty('message', 'Cadastro realizado com sucesso');
         expect(responseData).toHaveProperty('_id');
     });
-});
+
+    test('it should return an error when creating a product with missing required preco field', async ({ request }) => {
+        const incompleteProduct = {
+            nome: faker.commerce.productName(),
+            // preco is missing
+            descricao: faker.commerce.productDescription(),
+            quantidade: faker.number.int({ min: 1, max: 100 })
+        };
+
+        const response = await request.post('https://serverest.dev/produtos', {
+            data: incompleteProduct,
+            headers: {
+                'Content-Type': 'application/json',
+                'authorization': authorization
+            }
+        });
+
+        expect(response.status()).toBe(400);
+
+        const responseData = await response.json();
+
+        console.log('Response Data:', responseData); // Log para depuração
+        expect(responseData).toHaveProperty('preco'); // Verifica se a resposta contém a propriedade 'preco'
+        expect(responseData.preco).toBe('preco é obrigatório');
+
+    });
+}); 
