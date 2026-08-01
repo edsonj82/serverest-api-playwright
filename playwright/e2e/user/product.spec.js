@@ -63,6 +63,31 @@ test.describe('POST /produtos', () => {
         expect(responseData).toHaveProperty('_id');
     });
 
+    test('it should return an error when creating a product with missing required nome field', async ({ request }) => {
+        const incompleteProduct = {
+            // nome is missing
+            preco: faker.number.int({ min: 10, max: 1000 }),
+            descricao: faker.commerce.productDescription(),
+            quantidade: faker.number.int({ min: 1, max: 100 })
+        };
+
+        const response = await request.post('https://serverest.dev/produtos', {
+            data: incompleteProduct,
+            headers: {
+                'Content-Type': 'application/json',
+                'authorization': authorization
+            }
+        });
+
+        expect(response.status()).toBe(400);
+
+        const responseData = await response.json();
+
+        // console.log('Response Data:', responseData); // Log para depuração
+        expect(responseData).toHaveProperty('nome'); // Verifica se a resposta contém a propriedade 'nome'
+        expect(responseData.nome).toBe('nome é obrigatório');
+    });
+
     test('it should return an error when creating a product with missing required preco field', async ({ request }) => {
         const incompleteProduct = {
             nome: faker.commerce.productName(),
@@ -88,4 +113,4 @@ test.describe('POST /produtos', () => {
         expect(responseData.preco).toBe('preco é obrigatório');
 
     });
-}); 
+});
