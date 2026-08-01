@@ -137,4 +137,25 @@ test.describe('POST /produtos', () => {
         expect(responseData).toHaveProperty('descricao'); // Verifica se a resposta contém a propriedade 'descricao'
         expect(responseData.descricao).toBe('descricao é obrigatório');
     });
+
+    test('it should return an error when creating a product with missing required quantidade field', async ({ request }) => {
+        const incompleteProduct = {
+            nome: faker.commerce.productName(),
+            preco: faker.number.int({ min: 10, max: 1000 }),
+            descricao: faker.commerce.productDescription()
+            // quantidade is missing
+        };
+        const response = await request.post('https://serverest.dev/produtos', {
+            data: incompleteProduct,
+            headers: {
+                'Content-Type': 'application/json',
+                'authorization': authorization
+            }
+        });
+        expect(response.status()).toBe(400);
+
+        const responseData = await response.json();
+        expect(responseData).toHaveProperty('quantidade'); // Verifica se a resposta contém a propriedade 'quantidade'
+        expect(responseData.quantidade).toBe('quantidade é obrigatório');
+    });
 });
