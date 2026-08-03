@@ -275,4 +275,26 @@ test.describe('POST /produtos', () => {
         expect(responseData.descricao).toBe('descricao é obrigatório');
         expect(responseData.quantidade).toBe('quantidade é obrigatório');
     });
+
+    test('it should return an error when the tkoken is missing', async ({ request }) => {
+        const product = {
+            nome: `${faker.commerce.productName()} ${Date.now()}`,
+            preco: faker.number.int({ min: 10, max: 1000 }),
+            descricao: faker.commerce.productDescription(),
+            quantidade: faker.number.int({ min: 1, max: 100 })
+        };
+        const response = await request.post('https://serverest.dev/produtos', {
+            data: product,
+            headers: {
+                'Content-Type': 'application/json',
+                // 'authorization' header is missing or invalid
+            }
+        });
+
+        expect(response.status()).toBe(401);
+
+        const responseData = await response.json();
+        console.log('Response Data:', responseData); // Log para depuração
+        expect(responseData).toHaveProperty('message', 'Token de acesso ausente, inválido, expirado ou usuário do token não existe mais');
+    });
 });
