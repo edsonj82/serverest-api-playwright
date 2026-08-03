@@ -361,6 +361,28 @@ test.describe('POST /produtos', () => {
         expect(responseData.quantidade).toBe('quantidade deve ser um número');
     });
 
+    test('it should return an error when creating a product with invalid quantidade field (string instead of number)', async ({ request }) => {
+        const invalid_quantity = 'dez'; // quantidade is a string instead of a number
+        const incompleteProduct = {
+            nome: faker.commerce.productName(),
+            preco: faker.number.int({ min: 10, max: 1000 }),
+            descricao: faker.commerce.productDescription(),
+            quantidade: invalid_quantity // quantidade is a string instead of a number
+        };
+        const response = await request.post('https://serverest.dev/produtos', {
+            data: incompleteProduct,
+            headers: {
+                'Content-Type': 'application/json',
+                'authorization': authorization
+            }
+        });
+        expect(response.status()).toBe(400);
+
+        const responseData = await response.json();
+        expect(responseData).toHaveProperty('quantidade'); // Verifica se a resposta contém a propriedade 'quantidade'
+        expect(responseData.quantidade).toBe('quantidade deve ser um número');
+    });
+
     test('it should return an error when creating a product with missing required administrador field', async ({ request }) => {
         const incompleteProduct = {
             nome: faker.commerce.productName(),
