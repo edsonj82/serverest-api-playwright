@@ -478,6 +478,37 @@ test.describe('POST /produtos', () => {
         expect(responseData.administrador).toBe('administrador é obrigatório');
     });
 
+    test('it should return an error when creating a product with all invalid required fields', async ({ request }) => {
+        const invalidProduct = {
+            nome: 123,
+            preco: 'invalid',
+            descricao: 456,
+            quantidade: 'invalid',
+            administrador: 'invalid'
+        };
+        const response = await request.post('https://serverest.dev/produtos', {
+            data: invalidProduct,
+            headers: {
+                'Content-Type': 'application/json',
+                'authorization': authorization
+            }
+        });
+        expect(response.status()).toBe(400);
+
+        const responseData = await response.json();
+        expect(responseData).toHaveProperty('nome');
+        expect(responseData).toHaveProperty('preco');
+        expect(responseData).toHaveProperty('descricao');
+        expect(responseData).toHaveProperty('quantidade');
+        expect(responseData).toHaveProperty('administrador');
+
+        expect(responseData.nome).toBe('nome deve ser uma string');
+        expect(responseData.preco).toBe('preco deve ser um número');
+        expect(responseData.descricao).toBe('descricao deve ser uma string');
+        expect(responseData.quantidade).toBe('quantidade deve ser um número');
+        expect(responseData.administrador).toBe('administrador não é permitido');
+    });
+
     test('it should return an error when the tkoken is missing', async ({ request }) => {
         const product = {
             nome: `${faker.commerce.productName()} ${Date.now()}`,
