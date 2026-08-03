@@ -251,7 +251,7 @@ test.describe('POST /produtos', () => {
     });
 
     test('it should return and error when creating a product with invalid preco field (string instead of number)', async ({ request }) => {
-        
+
         const invalid_price = '-10,00'; // preco is a string instead of a number
         const incompleteProduct = {
             nome: faker.commerce.productName(),
@@ -296,6 +296,27 @@ test.describe('POST /produtos', () => {
         // console.log('Response Data:', responseData); // Log para depuração
         expect(responseData).toHaveProperty('descricao'); // Verifica se a resposta contém a propriedade 'descricao'
         expect(responseData.descricao).toBe('descricao é obrigatório');
+    });
+
+    test('it should return an error when creating a product with empty required descricao field', async ({ request }) => {
+        const incompleteProduct = {
+            nome: faker.commerce.productName(),
+            preco: faker.number.int({ min: 10, max: 1000 }),
+            descricao: '', // descricao is empty
+            quantidade: faker.number.int({ min: 1, max: 100 })
+        };
+        const response = await request.post('https://serverest.dev/produtos', {
+            data: incompleteProduct,
+            headers: {
+                'Content-Type': 'application/json',
+                'authorization': authorization
+            }
+        });
+        expect(response.status()).toBe(400);
+
+        const responseData = await response.json();
+        expect(responseData).toHaveProperty('descricao'); // Verifica se a resposta contém a propriedade 'descricao'
+        expect(responseData.descricao).toBe('descricao não pode ficar em branco');
     });
 
     test('it should return an error when creating a product with missing required quantidade field', async ({ request }) => {
