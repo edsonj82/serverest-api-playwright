@@ -449,7 +449,6 @@ test.describe('POST /produtos', () => {
         expect(responseData.administrador).toBe('administrador não é permitido');
     });
 
-
     test('it should return an error when creating a product with all missing required fields', async ({ request }) => {
         const incompleteProduct = {
             // All required fields are missing
@@ -470,11 +469,13 @@ test.describe('POST /produtos', () => {
         expect(responseData).toHaveProperty('preco');
         expect(responseData).toHaveProperty('descricao');
         expect(responseData).toHaveProperty('quantidade');
+        expect(responseData).toHaveProperty('administrador');
 
         expect(responseData.nome).toBe('nome é obrigatório');
         expect(responseData.preco).toBe('preco é obrigatório');
         expect(responseData.descricao).toBe('descricao é obrigatório');
         expect(responseData.quantidade).toBe('quantidade é obrigatório');
+        expect(responseData.administrador).toBe('administrador é obrigatório');
     });
 
     test('it should return an error when the tkoken is missing', async ({ request }) => {
