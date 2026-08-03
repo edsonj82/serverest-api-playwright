@@ -405,6 +405,28 @@ test.describe('POST /produtos', () => {
         expect(responseData.administrador).toBe('administrador é obrigatório');
     });
 
+    test('it should return an error when creating a product with empty required administrador field', async ({ request }) => {
+        const incompleteProduct = {
+            nome: faker.commerce.productName(),
+            preco: faker.number.int({ min: 10, max: 1000 }),
+            descricao: faker.commerce.productDescription(),
+            quantidade: faker.number.int({ min: 1, max: 100 }),
+            administrador: '' // administrador is empty
+        };
+        const response = await request.post('https://serverest.dev/produtos', {
+            data: incompleteProduct,
+            headers: {
+                'Content-Type': 'application/json',
+                'authorization': authorization
+            }
+        });
+        expect(response.status()).toBe(400);
+        const responseData = await response.json();
+        expect(responseData).toHaveProperty('administrador'); // Verifica se a resposta contém a propriedade 'administrador'
+        expect(responseData.administrador).toBe('administrador não é permitido');
+    });
+
+
     test('it should return an error when creating a product with all missing required fields', async ({ request }) => {
         const incompleteProduct = {
             // All required fields are missing
