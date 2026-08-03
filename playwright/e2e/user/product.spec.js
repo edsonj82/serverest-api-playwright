@@ -63,6 +63,61 @@ test.describe('POST /produtos', () => {
         expect(responseData).toHaveProperty('_id');
     });
 
+    test('it should return an error when the user is not an administrator', async ({ request }) => {
+        // 1. Criar um usuário comum (não administrador)
+        const firstName = faker.person.firstName();
+        const lastName = faker.person.lastName();
+        const fullName = `${firstName} ${lastName}`;
+        const email = faker.internet.email({ firstName, lastName }).toLowerCase();
+        const password = faker.internet.password();
+        const user = {
+            nome: fullName,
+            email: email,
+            password: password,
+            administrador: 'false' // Usuário comum
+        };
+
+        // 2. Criar usuário comum
+        const createUserResponse = await request.post('https://serverest.dev/usuarios', {
+            data: user
+        });
+        expect(createUserResponse.ok()).toBeTruthy();
+
+        // 3. Fazer login para capturar o Token do usuário comum
+        const loginResponse = await request.post('https://serverest.dev/login', {
+            data: {
+                email: email,
+                password: password
+            }
+        });
+        expect(loginResponse.ok()).toBeTruthy();
+
+        const loginData = await loginResponse.json();
+        const userAuthorization = loginData.authorization; // Armazena "Bearer <token>"
+
+        // 4. Tentar criar um produto com o usuário comum
+        const product = {
+            nome: `${faker.commerce.productName()} ${Date.now()}`,
+            preco: faker.number.int({ min: 10, max: 1000 }),
+            descricao: faker.commerce.productDescription(),
+            quantidade: faker.number.int({ min: 1, max: 100 })
+        };
+
+        const response = await request.post('https://serverest.dev/produtos', {
+            data: product,
+            headers: {
+                'Content-Type': 'application/json',
+                'authorization': userAuthorization
+            }
+        });
+
+        expect(response.status()).toBe(403);
+
+        const responseData = await response.json();
+        // console.log('Response Data:', responseData); // Log para depuração
+        expect(responseData).toHaveProperty('message', 'Rota exclusiva para administradores');
+    });
+
     test('it should return an error when creating a product with missing required nome field', async ({ request }) => {
         const incompleteProduct = {
             // nome is missing
