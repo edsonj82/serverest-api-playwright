@@ -63,6 +63,41 @@ test.describe('POST /produtos', () => {
         expect(responseData).toHaveProperty('_id');
     });
 
+    test('it should return an error when creating a duplicate product name', async ({ request }) => {
+        // Gera dados novos do produto dentro do teste
+        const product = {
+            nome: `${faker.commerce.productName()} ${Date.now()}`,
+            preco: faker.number.int({ min: 10, max: 1000 }),
+            descricao: faker.commerce.productDescription(),
+            quantidade: faker.number.int({ min: 1, max: 100 })
+        };
+
+        // Primeiro, cria o produto
+        const createResponse = await request.post('https://serverest.dev/produtos', {
+            data: product,
+            headers: {
+                'Content-Type': 'application/json',
+                'authorization': authorization
+            }
+        });
+        expect(createResponse.status()).toBe(201);
+
+        // Tenta criar o mesmo produto novamente
+        const response = await request.post('https://serverest.dev/produtos', {
+            data: product,
+            headers: {
+                'Content-Type': 'application/json',
+                'authorization': authorization
+            }
+        });
+
+        expect(response.status()).toBe(400);
+
+        const responseData = await response.json();
+        console.log('Response Data:', responseData); // Log para depuração
+        expect(responseData).toHaveProperty('message', 'Já existe produto com esse nome');
+    });
+
     test('it should return an error when the user is not an administrator', async ({ request }) => {
         // 1. Criar um usuário comum (não administrador)
         const firstName = faker.person.firstName();
