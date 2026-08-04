@@ -578,3 +578,81 @@ test.describe('POST /produtos', () => {
         expect(responseData).toHaveProperty('message', 'Token de acesso ausente, inválido, expirado ou usuário do token não existe mais');
     });
 });
+
+test.describe('GET /produtos', () => {
+
+    let authorization;
+
+    test.beforeAll(async ({ request }) => {
+        // 1. Dados do usuário Administrador
+        const firstName = faker.person.firstName();
+        const lastName = faker.person.lastName();
+        const fullName = `${firstName} ${lastName}`;
+        const email = faker.internet.email({ firstName, lastName }).toLowerCase();
+        const password = faker.internet.password();
+
+        const user = {
+            nome: fullName,
+            email: email,
+            password: password,
+            administrador: 'true' // Obrigatório ser string 'true' no ServeRest
+        };
+
+        // 2. Criar usuário admin
+        const response = await request.post('https://serverest.dev/usuarios', {
+            data: user
+        });
+        expect(response.ok()).toBeTruthy();
+
+        // 3. Fazer login para capturar o Token
+        const loginResponse = await request.post('https://serverest.dev/login', {
+            data: {
+                email: email,
+                password: password
+            }
+        });
+        expect(loginResponse.ok()).toBeTruthy();
+
+        const loginData = await loginResponse.json();
+        authorization = loginData.authorization; // Armazena "Bearer <token>"
+    });
+
+    test('it should return a list of products', async ({ request }) => {
+        const product = {
+            nome: `${faker.commerce.productName()} ${Date.now()}`,
+            preco: faker.number.int({ min: 10, max: 1000 }),
+            descricao: faker.commerce.productDescription(),
+            quantidade: faker.number.int({ min: 1, max: 100 })
+        };
+
+        const createResponse = await request.post('https://serverest.dev/produtos', {
+            data: product,
+            headers: {
+                'authorization': authorization
+            }
+        });
+        expect(createResponse.status()).toBe(201);
+
+        const response = await request.get('https://serverest.dev/produtos', {
+            headers: {
+                'Content-Type': 'application/json',
+                'authorization': authorization
+            }
+        });
+        expect(response.status()).toBe(200);
+        const responseData = await response.json();
+        console.log('Response Data:', responseData); // Log para depuração
+
+        expect(Array.isArray(responseData.produtos)).toBe(true);
+
+        expect(responseData.produtos.length).toBeGreaterThan(0);
+        responseData.produtos.forEach(product => {
+            expect(product).toHaveProperty('_id');
+            expect(product).toHaveProperty('nome');
+            expect(product).toHaveProperty('preco');
+            expect(product).toHaveProperty('descricao');
+            expect(product).toHaveProperty('quantidade');
+        });
+    });
+});
+
