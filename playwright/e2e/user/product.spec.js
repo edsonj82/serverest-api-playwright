@@ -654,5 +654,28 @@ test.describe('GET /produtos', () => {
             expect(product).toHaveProperty('quantidade');
         });
     });
+
+    test('it should return a list when the token is missing', async ({ request }) => {
+        const response = await request.get('https://serverest.dev/produtos', {
+            headers: {
+                'Content-Type': 'application/json',
+                // 'authorization' header is missing
+            }
+        });
+        expect(response.status()).toBe(200);
+        const responseData = await response.json();
+        console.log('Response Data:', responseData); // Log para depuração
+
+        expect(Array.isArray(responseData.produtos)).toBe(true);
+
+        expect(responseData.produtos.length).toBeGreaterThan(0);
+        responseData.produtos.forEach(product => {
+            expect(product).toHaveProperty('_id');
+            expect(product).toHaveProperty('nome');
+            expect(product).toHaveProperty('preco');
+            expect(product).toHaveProperty('descricao');
+            expect(product).toHaveProperty('quantidade');
+        });
+    });
 });
 
