@@ -700,5 +700,29 @@ test.describe('GET /produtos', () => {
             expect(product).toHaveProperty('quantidade');
         });
     });
+
+    test('it should return a list when the token is expired', async ({ request }) => {
+        const expired_token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImxlbGFuZC5vY29ubmVyQGdtYWlsLmNvbSIsInBhc3N3b3JkIjoic0owUUp5dkxQWkRSZng4IiwiaWF0IjoxNzg1Nzk2ODgxLCJleHAiOjE3ODU3OTc0ODF9.K-57b8Vd3IbCWZUh8qSpb63YqCp1UchJO2sEXyZp7h4';
+        const response = await request.get('https://serverest.dev/produtos', {
+            headers: {
+                'Content-Type': 'application/json',
+                'authorization': `Bearer ${expired_token}`
+            }
+        });
+        expect(response.status()).toBe(200);
+        const responseData = await response.json();
+        console.log('Response Data:', responseData); // Log para depuração
+
+        expect(Array.isArray(responseData.produtos)).toBe(true);
+
+        expect(responseData.produtos.length).toBeGreaterThan(0);
+        responseData.produtos.forEach(product => {
+            expect(product).toHaveProperty('_id');
+            expect(product).toHaveProperty('nome');
+            expect(product).toHaveProperty('preco');
+            expect(product).toHaveProperty('descricao');
+            expect(product).toHaveProperty('quantidade');
+        });
+    });
 });
 
