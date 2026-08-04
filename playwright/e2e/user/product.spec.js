@@ -724,5 +724,18 @@ test.describe('GET /produtos', () => {
             expect(product).toHaveProperty('quantidade');
         });
     });
+
+    test('it should error when the url is invalid', async ({ request }) => {
+        const response = await request.get('https://serverest.dev/produtos-invalidos', {
+            headers: {
+                'Content-Type': 'application/json',
+                'authorization': authorization
+            }
+        });
+        expect(response.status()).toBe(405);
+        const responseData = await response.json();
+        // console.log('Response Data:', responseData);
+        expect(responseData).toHaveProperty('message', 'Não é possível realizar GET em /produtos-invalidos. Acesse https://serverest.dev para ver as rotas disponíveis e como utilizá-las.');
+    });
 });
 
