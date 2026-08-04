@@ -677,5 +677,28 @@ test.describe('GET /produtos', () => {
             expect(product).toHaveProperty('quantidade');
         });
     });
+
+    test('it should return a list when the token is invalid', async ({ request }) => {
+        const invalid_token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIn0.SflKxwRJSMeKKF2jWBLfI8T4JdF-P_A6gU3P-XoDq3o';
+        const response = await request.get('https://serverest.dev/produtos', {
+            headers: {
+                'Content-Type': 'application/json',
+                'authorization': `Bearer ${invalid_token}`
+            }
+        });
+        expect(response.status()).toBe(200);
+        const responseData = await response.json();
+        console.log('Response Data:', responseData); // Log para depuração  
+        expect(Array.isArray(responseData.produtos)).toBe(true);
+
+        expect(responseData.produtos.length).toBeGreaterThan(0);
+        responseData.produtos.forEach(product => {
+            expect(product).toHaveProperty('_id');
+            expect(product).toHaveProperty('nome');
+            expect(product).toHaveProperty('preco');
+            expect(product).toHaveProperty('descricao');
+            expect(product).toHaveProperty('quantidade');
+        });
+    });
 });
 
