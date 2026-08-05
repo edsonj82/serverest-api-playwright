@@ -750,4 +750,18 @@ test.describe('GET /produtos', () => {
         // console.log('Response Data:', responseData);
         expect(responseData).toHaveProperty('message', 'Não é possível realizar GET em /produtos-invalidos. Acesse https://serverest.dev para ver as rotas disponíveis e como utilizá-las.');
     });
+
+    test('it should error when the url is invalid and the token is invalid', async ({ request }) => {
+        const invalid_token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIn0.SflKxwRJSMeKKF2jWBLfI8T4JdF-P_A6gU3P-XoDq3o';
+        const response = await request.get('https://serverest.dev/produtos-invalidos', {
+            headers: {
+                'Content-Type': 'application/json',
+                'authorization': `Bearer ${invalid_token}`
+            }
+        });
+        expect(response.status()).toBe(405);
+        const responseData = await response.json();
+        // console.log('Response Data:', responseData);
+        expect(responseData).toHaveProperty('message', 'Não é possível realizar GET em /produtos-invalidos. Acesse https://serverest.dev para ver as rotas disponíveis e como utilizá-las.');
+    });
 });
