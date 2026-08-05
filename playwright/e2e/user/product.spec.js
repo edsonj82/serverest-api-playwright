@@ -764,4 +764,18 @@ test.describe('GET /produtos', () => {
         // console.log('Response Data:', responseData);
         expect(responseData).toHaveProperty('message', 'Não é possível realizar GET em /produtos-invalidos. Acesse https://serverest.dev para ver as rotas disponíveis e como utilizá-las.');
     });
+
+    test('it should error when the url is invalid and the token is expired', async ({ request }) => {
+        const expired_token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImxlbGFuZC5vY29ubmVyQGdtYWlsLmNvbSIsInBhc3N3b3JkIjoic0owUUp5dkxQWkRSZng4IiwiaWF0IjoxNzg1Nzk2ODgxLCJleHAiOjE3ODU3OTc0ODF9.K-57b8Vd3IbCWZUh8qSpb63YqCp1UchJO2sEXyZp7h4';
+        const response = await request.get('https://serverest.dev/produtos-invalidos', {
+            headers: {
+                'Content-Type': 'application/json',
+                'authorization': `Bearer ${expired_token}`
+            }
+        });
+        expect(response.status()).toBe(405);
+        const responseData = await response.json();
+        // console.log('Response Data:', responseData);
+        expect(responseData).toHaveProperty('message', 'Não é possível realizar GET em /produtos-invalidos. Acesse https://serverest.dev para ver as rotas disponíveis e como utilizá-las.');
+    });
 });
