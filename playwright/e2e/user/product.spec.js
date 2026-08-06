@@ -799,6 +799,28 @@ test.describe('GET /produtos/:id', () => {
         expect(responseData).toHaveProperty('quantidade');
     });
 
+    test('it should return list of the products when the product id is missing', async ({ request }) => {
+        const emptyProductId = '';
+
+        const response = await request.get(`https://serverest.dev/produtos/${emptyProductId}`);
+
+        expect(response.status()).toBe(200);
+
+        const responseData = await response.json();
+        console.log('Response Data:', responseData); // Log para depuração
+
+        expect(Array.isArray(responseData.produtos)).toBe(true);
+
+        expect(responseData.produtos.length).toBeGreaterThan(0);
+        responseData.produtos.forEach(product => {
+            expect(product).toHaveProperty('_id');
+            expect(product).toHaveProperty('nome');
+            expect(product).toHaveProperty('preco');
+            expect(product).toHaveProperty('descricao');
+            expect(product).toHaveProperty('quantidade');
+        });
+    });
+
     test('it should return an error when the product id is invalid', async ({ request }) => {
         const invalidProductId = 'invalid-id';
 
