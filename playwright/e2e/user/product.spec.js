@@ -781,7 +781,7 @@ test.describe('GET /produtos', () => {
 });
 
 test.describe('GET /produtos/:id', () => {
-    
+
     test('it should return a product by id', async ({ request }) => {
         const produtoId = 'BeeJh5lz3k6kSIzA';
 
@@ -797,5 +797,16 @@ test.describe('GET /produtos/:id', () => {
         expect(responseData).toHaveProperty('preco');
         expect(responseData).toHaveProperty('descricao');
         expect(responseData).toHaveProperty('quantidade');
+    });
+
+    test('it should return an error when the product id is invalid', async ({ request }) => {
+        const invalidProductId = 'invalid-id';
+       
+        const response = await request.get(`https://serverest.dev/produtos/${invalidProductId}`);
+       
+        expect(response.status()).toBe(400);
+        const responseData = await response.json();
+        console.log('Response Data:', responseData); // Log para depuração
+        expect(responseData).toHaveProperty('id', 'id deve ter exatamente 16 caracteres alfanuméricos');
     });
 });
