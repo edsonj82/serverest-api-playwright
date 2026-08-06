@@ -842,4 +842,15 @@ test.describe('GET /produtos/:id', () => {
         console.log('Response Data:', responseData); // Log para depuração
         expect(responseData).toHaveProperty('message', 'Produto não encontrado');
     });
+
+    test('it should return an error when the product id is missing and the url is invalid', async ({ request }) => {
+        const emptyProductId = '';
+
+        const response = await request.get(`https://serverest.dev/produtos-invalidos/${emptyProductId}`);
+
+        expect(response.status()).toBe(405);
+        const responseData = await response.json();
+        // console.log('Response Data:', responseData);
+        expect(responseData).toHaveProperty('message', 'Não é possível realizar GET em /produtos-invalidos/. Acesse https://serverest.dev para ver as rotas disponíveis e como utilizá-las.');
+    });
 });
