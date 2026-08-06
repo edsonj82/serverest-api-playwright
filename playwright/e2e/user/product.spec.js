@@ -779,3 +779,23 @@ test.describe('GET /produtos', () => {
         expect(responseData).toHaveProperty('message', 'Não é possível realizar GET em /produtos-invalidos. Acesse https://serverest.dev para ver as rotas disponíveis e como utilizá-las.');
     });
 });
+
+test.describe('GET /produtos/:id', () => {
+    
+    test('it should return a product by id', async ({ request }) => {
+        const produtoId = 'BeeJh5lz3k6kSIzA';
+
+        const createResponse = await request.get(`https://serverest.dev/produtos/${produtoId}`);
+
+        expect(createResponse.status()).toBe(200);
+        const responseData = await createResponse.json();
+
+        console.log('Response Data:', responseData); // Log para depuração
+
+        expect(responseData).toHaveProperty('_id', produtoId);
+        expect(responseData).toHaveProperty('nome');
+        expect(responseData).toHaveProperty('preco');
+        expect(responseData).toHaveProperty('descricao');
+        expect(responseData).toHaveProperty('quantidade');
+    });
+});
