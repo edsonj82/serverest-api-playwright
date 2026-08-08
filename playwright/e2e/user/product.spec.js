@@ -1110,7 +1110,7 @@ test.describe('PÙT /produtos/:id', () => {
         const responseData = await response.json();
         console.log('Response Data:', responseData); // Log para depuração
         expect(responseData).toHaveProperty('id', 'id deve ter exatamente 16 caracteres alfanuméricos');
-    });    
+    });
 });
 
 test.describe('DELETE /produtos/:id', () => {
@@ -1177,5 +1177,18 @@ test.describe('DELETE /produtos/:id', () => {
         const responseData = await response.json();
         console.log('Response Data:', responseData); // Log para depuração
         expect(responseData).toHaveProperty('message', 'Registro excluído com sucesso');
+    });
+
+    test('it should return an error when the product id is empty', async ({ request }) => {
+        const emptyProductId = '';
+        const response = await request.delete(`https://serverest.dev/produtos/${emptyProductId}`, {
+            headers: {
+                'authorization': authorization
+            }
+        });
+        expect(response.status()).toBe(405);
+        const responseData = await response.json();
+        console.log('Response Data:', responseData); // Log para depuração
+        expect(responseData).toHaveProperty('message', 'Não é possível realizar DELETE em /produtos/. Acesse https://serverest.dev para ver as rotas disponíveis e como utilizá-las.');
     });
 });
