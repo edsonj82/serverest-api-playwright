@@ -1050,5 +1050,26 @@ test.describe('PÙT /produtos/:id', () => {
         console.log('Response Data:', responseData); // Log para depuração
         expect(responseData).toHaveProperty('message', 'Token de acesso ausente, inválido, expirado ou usuário do token não existe mais');
     });
+
+    test('it should return an error when token is invalid', async ({ request }) => {
+        const invalid_token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIn0.SflKxwRJSMeKKF2jWBLfI8T4JdF-P_A6gU3P-XoDq3o';
+        const updatedProduct = {
+            nome: faker.commerce.productName(),
+            preco: faker.number.int({ min: 10, max: 1000 }),
+            descricao: faker.commerce.productDescription(),
+            quantidade: faker.number.int({ min: 1, max: 100 })
+        };
+
+        const response = await request.put(`https://serverest.dev/produtos/${productId}`, {
+            data: updatedProduct,
+            headers: {
+                'authorization': invalid_token
+            }
+        });
+        expect(response.status()).toBe(401);
+        const responseData = await response.json();
+        console.log('Response Data:', responseData); // Log para depuração
+        expect(responseData).toHaveProperty('message', 'Token de acesso ausente, inválido, expirado ou usuário do token não existe mais');
+    });
 });
 
