@@ -1092,5 +1092,24 @@ test.describe('PÙT /produtos/:id', () => {
         console.log('Response Data:', responseData); // Log para depuração
         expect(responseData).toHaveProperty('message', 'Token de acesso ausente, inválido, expirado ou usuário do token não existe mais');
     });
+
+    test('it should return an error when the url is invalid', async ({ request }) => {
+        const updatedProduct = {
+            nome: faker.commerce.productName(),
+            preco: faker.number.int({ min: 10, max: 1000 }),
+            descricao: faker.commerce.productDescription(),
+            quantidade: faker.number.int({ min: 1, max: 100 })
+        };
+        const response = await request.put(`https://serverest.dev/produtos/invalid-url`, {
+            data: updatedProduct,
+            headers: {
+                'authorization': authorization
+            }
+        });
+        expect(response.status()).toBe(400);
+        const responseData = await response.json();
+        console.log('Response Data:', responseData); // Log para depuração
+        expect(responseData).toHaveProperty('id', 'id deve ter exatamente 16 caracteres alfanuméricos');
+    });
 });
 
