@@ -1204,4 +1204,17 @@ test.describe('DELETE /produtos/:id', () => {
         console.log('Response Data:', responseData); // Log para depuração
         expect(responseData).toHaveProperty('id', 'id deve ter exatamente 16 caracteres alfanuméricos');
     });
+
+    test('it should return an error when the product id does not exist', async ({ request }) => {
+        const nonExistentProductId = '1234567890123456';
+        const response = await request.delete(`https://serverest.dev/produtos/${nonExistentProductId}`, {
+            headers: {
+                'authorization': authorization
+            }
+        });
+        expect(response.status()).toBe(400);
+        const responseData = await response.json();
+        console.log('Response Data:', responseData); // Log para depuração
+        expect(responseData).toHaveProperty('message', 'Produto não encontrado');
+    });
 });
