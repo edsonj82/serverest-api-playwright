@@ -991,5 +991,25 @@ test.describe('PÙT /produtos/:id', () => {
         console.log('Response Data:', responseData); // Log para depuração
         expect(responseData).toHaveProperty('message', 'Alguns campos são obrigatórios');
     });
+
+    test('it should return an error when updating a product when preco is negative', async ({ request }) => {
+        const invalidProduct = {
+            nome: faker.commerce.productName(),
+            preco: -10, // preco is negative
+            descricao: faker.commerce.productDescription(),
+            quantidade: faker.number.int({ min: 1, max: 100 })
+        };
+
+        const response = await request.put(`https://serverest.dev/produtos/${productId}`, {
+            data: invalidProduct,
+            headers: {
+                'authorization': authorization
+            }
+        });
+        expect(response.status()).toBe(400);
+        const responseData = await response.json();
+        console.log('Response Data:', responseData); // Log para depuração
+        expect(responseData).toHaveProperty('preco', 'preco deve ser um número positivo');
+    });
 });
 
