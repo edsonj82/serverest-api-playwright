@@ -1110,6 +1110,72 @@ test.describe('PÙT /produtos/:id', () => {
         const responseData = await response.json();
         console.log('Response Data:', responseData); // Log para depuração
         expect(responseData).toHaveProperty('id', 'id deve ter exatamente 16 caracteres alfanuméricos');
-    });
+    });    
 });
 
+test.describe('DELETE /produtos/:id', () => {
+    let authorization, productId;
+
+    test.beforeAll(async ({ request }) => {
+        // 1. Dados do usuário Administrador
+        const firstName = faker.person.firstName();
+        const lastName = faker.person.lastName();
+        const fullName = `${firstName} ${lastName}`;
+        const email = faker.internet.email({ firstName, lastName }).toLowerCase();
+        const password = faker.internet.password();
+
+        const user = {
+            nome: fullName,
+            email: email,
+            password: password,
+            administrador: 'true' // Obrigatório ser string 'true' no ServeRest
+        };
+
+        // 2. Criar usuário admin
+        const response = await request.post('https://serverest.dev/usuarios', {
+            data: user
+        });
+        expect(response.ok()).toBeTruthy();
+
+        // 3. Fazer login para capturar o Token
+        const loginResponse = await request.post('https://serverest.dev/login', {
+            data: {
+                email: email,
+                password: password
+            }
+        });
+        expect(loginResponse.ok()).toBeTruthy();
+
+        const loginData = await loginResponse.json();
+        authorization = loginData.authorization; // Armazena "Bearer <token>"
+
+        const product = {
+            nome: `${faker.commerce.productName()} ${Date.now()}`,
+            preco: faker.number.int({ min: 10, max: 1000 }),
+            descricao: faker.commerce.productDescription(),
+            quantidade: faker.number.int({ min: 1, max: 100 })
+        };
+        // 4. Criar produto
+        const createProductResponse = await request.post('https://serverest.dev/produtos', {
+            data: product,
+            headers: {
+                'authorization': authorization
+            }
+        });
+        expect(createProductResponse.ok()).toBeTruthy();
+        const createProductData = await createProductResponse.json();
+        productId = createProductData._id;
+    });
+
+    test('it should delete a product by id', async ({ request }) => {
+        const response = await request.delete(`https://serverest.dev/produtos/${productId}`, {
+            headers: {
+                'authorization': authorization
+            }
+        });
+        expect(response.status()).toBe(200);
+        const responseData = await response.json();
+        console.log('Response Data:', responseData); // Log para depuração
+        expect(responseData).toHaveProperty('message', 'Registro excluído com sucesso');
+    });
+});
