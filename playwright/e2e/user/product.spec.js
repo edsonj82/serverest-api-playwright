@@ -971,5 +971,25 @@ test.describe('PÙT /produtos/:id', () => {
         console.log('Response Data:', responseData); // Log para depuração
         expect(responseData).toHaveProperty('message', 'Produto não encontrado');
     });
+
+    test('it should return an error when updating a product when nome has more than 124 characters', async ({ request }) => {
+        const invalidProduct = {
+            nome: 'a'.repeat(125), // nome with 125 characters
+            preco: faker.number.int({ min: 10, max: 1000 }),
+            descricao: faker.commerce.productDescription(),
+            quantidade: faker.number.int({ min: 1, max: 100 })
+        };
+
+        const response = await request.put(`https://serverest.dev/produtos/${productId}`, {
+            data: invalidProduct,
+            headers: {
+                'authorization': authorization
+            }
+        });
+        expect(response.status()).toBe(400);
+        const responseData = await response.json();
+        console.log('Response Data:', responseData); // Log para depuração
+        expect(responseData).toHaveProperty('message', 'Alguns campos são obrigatórios');
+    });
 });
 
