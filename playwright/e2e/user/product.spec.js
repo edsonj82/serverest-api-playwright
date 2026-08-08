@@ -856,7 +856,7 @@ test.describe('GET /produtos/:id', () => {
 });
 
 test.describe('PÙT /produtos/:id', () => {
-    let authorization;
+    let authorization, productId;
 
     test.beforeAll(async ({ request }) => {
         // 1. Dados do usuário Administrador
@@ -926,11 +926,29 @@ test.describe('PÙT /produtos/:id', () => {
         expect(response.status()).toBe(200);
         const responseData = await response.json();
         console.log('Response Data:', responseData); // Log para depuração
-        expect(responseData).toHaveProperty('_id', productId);
-        expect(responseData).toHaveProperty('nome', updatedProduct.nome);
-        expect(responseData).toHaveProperty('preco', updatedProduct.preco);
-        expect(responseData).toHaveProperty('descricao', updatedProduct.descricao);
-        expect(responseData).toHaveProperty('quantidade', updatedProduct.quantidade);
+
+        expect(responseData).toHaveProperty('message', 'Registro alterado com sucesso');
+    });
+
+    test('it should return an error when updating a product with invalid id', async ({ request }) => {
+        const invalidProductId = 'invalid-id';
+        const updatedProduct = {
+            nome: `${faker.commerce.productName()} ${Date.now()}`,
+            preco: faker.number.int({ min: 10, max: 1000 }),
+            descricao: faker.commerce.productDescription(),
+            quantidade: faker.number.int({ min: 1, max: 100 })
+        };
+
+        const response = await request.put(`https://serverest.dev/produtos/${invalidProductId}`, {
+            data: updatedProduct,
+            headers: {
+                'authorization': authorization
+            }
+        });
+        expect(response.status()).toBe(400);
+        const responseData = await response.json();
+        console.log('Response Data:', responseData); // Log para depuração
+        expect(responseData).toHaveProperty('id', 'id deve ter exatamente 16 caracteres alfanuméricos');
     });
 });
 
