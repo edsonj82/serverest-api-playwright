@@ -1191,4 +1191,17 @@ test.describe('DELETE /produtos/:id', () => {
         console.log('Response Data:', responseData); // Log para depuração
         expect(responseData).toHaveProperty('message', 'Não é possível realizar DELETE em /produtos/. Acesse https://serverest.dev para ver as rotas disponíveis e como utilizá-las.');
     });
+
+    test('it should return an error when the product id is invalid', async ({ request }) => {
+        const invalidProductId = 'invalid-id';
+        const response = await request.delete(`https://serverest.dev/produtos/${invalidProductId}`, {
+            headers: {
+                'authorization': authorization
+            }
+        });
+        expect(response.status()).toBe(400);
+        const responseData = await response.json();
+        console.log('Response Data:', responseData); // Log para depuração
+        expect(responseData).toHaveProperty('id', 'id deve ter exatamente 16 caracteres alfanuméricos');
+    });
 });
