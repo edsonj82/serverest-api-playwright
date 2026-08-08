@@ -1011,5 +1011,25 @@ test.describe('PÙT /produtos/:id', () => {
         console.log('Response Data:', responseData); // Log para depuração
         expect(responseData).toHaveProperty('preco', 'preco deve ser um número positivo');
     });
+
+    test('it should return an error when updating a product when quantidade is negative', async ({ request }) => {
+        const invalidProduct = {
+            nome: faker.commerce.productName(),
+            preco: faker.number.int({ min: 10, max: 1000 }),
+            descricao: faker.commerce.productDescription(),
+            quantidade: -5 // quantidade is negative
+        };
+
+        const response = await request.put(`https://serverest.dev/produtos/${productId}`, {
+            data: invalidProduct,
+            headers: {
+                'authorization': authorization
+            }
+        });
+        expect(response.status()).toBe(400);
+        const responseData = await response.json();
+        console.log('Response Data:', responseData); // Log para depuração
+        expect(responseData).toHaveProperty('quantidade', 'quantidade deve ser maior ou igual a 0');
+    });
 });
 
