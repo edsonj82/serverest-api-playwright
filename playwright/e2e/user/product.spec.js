@@ -950,5 +950,26 @@ test.describe('PÙT /produtos/:id', () => {
         console.log('Response Data:', responseData); // Log para depuração
         expect(responseData).toHaveProperty('id', 'id deve ter exatamente 16 caracteres alfanuméricos');
     });
+
+    test('it should return an error when updating a product with non-existent id', async ({ request }) => {
+        const nonExistentProductId = '1234567890123456';
+        const updatedProduct = {
+            nome: `${faker.commerce.productName()} ${Date.now()}`,
+            preco: faker.number.int({ min: 10, max: 1000 }),
+            descricao: faker.commerce.productDescription(),
+            quantidade: faker.number.int({ min: 1, max: 100 })
+        };
+
+        const response = await request.put(`https://serverest.dev/produtos/${nonExistentProductId}`, {
+            data: updatedProduct,
+            headers: {
+                'authorization': authorization
+            }
+        });
+        expect(response.status()).toBe(400);
+        const responseData = await response.json();
+        console.log('Response Data:', responseData); // Log para depuração
+        expect(responseData).toHaveProperty('message', 'Produto não encontrado');
+    });
 });
 
