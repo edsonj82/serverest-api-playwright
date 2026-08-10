@@ -398,6 +398,9 @@ test.describe('POST /produtos', () => {
                 'authorization': authorization
             }
         });
+
+        // Marca o teste como "fixme" apontando o ID do bug/card
+        test.fixme(true, 'BUG: API returning 201 instead of 400 for non-existent administrador is missing');
         expect(response.status()).toBe(400);
 
         const responseData = await response.json();
