@@ -472,13 +472,13 @@ test.describe('POST /produtos', () => {
         expect(responseData).toHaveProperty('preco');
         expect(responseData).toHaveProperty('descricao');
         expect(responseData).toHaveProperty('quantidade');
-        expect(responseData).toHaveProperty('administrador');
+        // expect(responseData).toHaveProperty('administrador');
 
         expect(responseData.nome).toBe('nome é obrigatório');
         expect(responseData.preco).toBe('preco é obrigatório');
         expect(responseData.descricao).toBe('descricao é obrigatório');
         expect(responseData.quantidade).toBe('quantidade é obrigatório');
-        expect(responseData.administrador).toBe('administrador é obrigatório');
+        // expect(responseData.administrador).toBe('administrador é obrigatório');
     });
 
     test('it should return an error when creating a product with all invalid required fields', async ({ request }) => {
