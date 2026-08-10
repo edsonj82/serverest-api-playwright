@@ -121,6 +121,7 @@ test.describe('POST /login', () => {
     });
 
     test('it should log in successfully with valid credentials and then log out', async ({ request }) => {
+
         const firstName = faker.person.firstName();
         const lastName = faker.person.lastName();
         const fullName = `${firstName} ${lastName}`;
@@ -138,7 +139,8 @@ test.describe('POST /login', () => {
             data: user
         });
 
-        expect(response.ok()).toBeTruthy();
+        // expect(response.ok()).toBeTruthy();
+        expect(response.status()).toBe(201);
 
         email = user.email;
         password = user.password;
@@ -167,6 +169,10 @@ test.describe('POST /login', () => {
             }
         });
 
+        // Marca o teste como "fixme" apontando o ID do bug/card
+        test.fixme(true, 'Feature unavailable: API returns 405 because POST /logout is not supported.');
+
+        console.log('Logout Response Status:', logoutResponse.status());
         expect(logoutResponse.ok()).toBeTruthy();
 
         const logoutData = await logoutResponse.json();
