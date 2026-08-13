@@ -1231,8 +1231,3 @@ test.describe('DELETE /produtos/:id', () => {
         expect(responseData).toHaveProperty('message', 'Produto não encontrado');
     });
 });
-
-
-
-// Marca o teste como "fixme" apontando o ID do bug/card
-//   test.fixme(true, 'BUG-123: API returning 200 instead of 400 for non-existent product ID');

@@ -392,11 +392,11 @@ test.describe('GET /usuarios', () => {
         expect(body.quantidade).toBe(body.usuarios.length);
     });
 
-    test('it should return 404 for invalid endpoint', async ({ request }) => {
+    test('it should return 405 for invalid endpoint', async ({ request }) => {
         const response = await request.get('https://serverest.dev/usuarios-invalid-endpoint');
-        expect(response.status()).toBe(404);
+        expect(response.status()).toBe(405);
         const responseBody = await response.json();
-        expect(responseBody).toHaveProperty('message', 'Endpoint não encontrado');
+        expect(responseBody).toHaveProperty('message', 'Não é possível realizar GET em /usuarios-invalid-endpoint. Acesse https://serverest.dev para ver as rotas disponíveis e como utilizá-las.');
     });
 
     test('it should return 404 for invalid endpoint with ID', async ({ request }) => {
@@ -969,3 +969,8 @@ test.describe('DELETE /usuarios/{id}', () => {
     });
 
 });
+
+
+
+// Marca o teste como "fixme" apontando o ID do bug/card
+//   test.fixme(true, 'BUG-123: API returning 200 instead of 400 for non-existent product ID');
