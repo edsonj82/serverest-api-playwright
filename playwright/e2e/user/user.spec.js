@@ -434,7 +434,7 @@ test.describe('GET /usuarios', () => {
         const response = await request.get(`https://serverest.dev/usuarios-invalid-endpoint/${invalidId}/`);
         expect(response.status()).toBe(405);
         const responseBody = await response.json();
-        expect(responseBody).toHaveProperty('message', 'Não é possível realizar GET em /usuarios-invalid-endpoint/. Acesse https://serverest.dev para ver as rotas disponíveis e como utilizá-las.');
+        expect(responseBody).toHaveProperty('message', `Não é possível realizar GET em /usuarios-invalid-endpoint/${invalidId}/. Acesse https://serverest.dev para ver as rotas disponíveis e como utilizá-las.`);
     });
 
     test('it should return 404 for invalid endpoint with query parameters and trailing slash', async ({ request }) => {
