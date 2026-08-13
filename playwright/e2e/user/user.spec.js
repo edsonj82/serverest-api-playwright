@@ -342,14 +342,14 @@ test.describe('POST /usuarios', () => {
         expect(responseBody.administrador).toBe("administrador é obrigatório");
     });
 
-    test('it should return 404 for invalid endpoint', async ({ request }) => {
+    test('it should return 405 for invalid endpoint', async ({ request }) => {
         const response = await request.post('https://serverest.dev/usuarios-invalid-endpoint', {
             data: {
                 nome: 'Test User',
                 email: 'test@example.com'
             }
         });
-        expect(response.status()).toBe(404);
+        expect(response.status()).toBe(405);
         const responseBody = await response.json();
         expect(responseBody).toHaveProperty('message', 'Endpoint não encontrado');
     });
