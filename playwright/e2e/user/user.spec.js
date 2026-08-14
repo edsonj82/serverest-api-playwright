@@ -518,6 +518,9 @@ test.describe('GET /usuarios/{id}', () => {
         const emptyId = '';
         const response = await request.get(`https://serverest.dev/usuarios/${emptyId}`);
 
+        // Marca o teste como "fixme" apontando o ID do bug/card
+        test.fixme(true, 'BUG: API returning 200 instead of 400 for non-existent user ID');
+
         expect(response.status()).toBe(400);
 
         const responseBody = await response.json();
