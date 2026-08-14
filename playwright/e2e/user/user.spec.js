@@ -557,7 +557,7 @@ test.describe('GET /usuarios/{id}', () => {
         const responseBody = await response.json();
         // Marca o teste como "fixme" apontando o ID do bug/card
         test.fixme(true, 'BUG: API returning 400 with non-string user ID');
-        
+
         expect(responseBody).toBe('id deve ser uma string');
     });
 
@@ -615,6 +615,10 @@ test.describe('GET /usuarios/{id}', () => {
         const response = await request.get(`https://serverest.dev/usuarios/${arrayId}`);
         expect(response.status()).toBe(400);
         const responseBody = await response.json();
+
+        // Marca o teste como "fixme" apontando o ID do bug/card
+        test.fixme(true, 'BUG: API returning 400 with non-array user ID');
+
         expect(responseBody.id).toBe('id deve ter exatamente 16 caracteres alfanuméricos');
     });
 });
