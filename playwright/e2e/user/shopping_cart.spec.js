@@ -162,4 +162,44 @@ test.describe('POST /carrinhos', () => {
         expect(responseData.produtos).toBe('produtos não contém 1 valor obrigatório');
         console.log('Response data:', responseData);
     });
+
+    test('it should return an error when creating more than one shopping cart for the same user', async ({ request }) => {
+        // Primeiro, cria um carrinho para o usuário
+        const firstCartResponse = await request.post('https://serverest.dev/carrinhos', {
+            data: {
+                produtos: [
+                    {
+                        idProduto: productId,
+                        quantidade: 1
+                    }
+                ]
+            },
+            headers: {
+                Authorization: authorization
+            }
+        });
+        expect(firstCartResponse.ok()).toBeTruthy();
+
+        // Agora, tenta criar outro carrinho para o mesmo usuário
+        const secondCartResponse = await request.post('https://serverest.dev/carrinhos', {
+            data: {
+                produtos: [
+                    {
+                        idProduto: productId,
+                        quantidade: 1
+                    }
+                ]
+            },
+            headers: {
+                Authorization: authorization
+            }
+        });
+        expect(secondCartResponse.ok()).toBeFalsy();
+        expect(secondCartResponse.status()).toBe(400);
+
+        const responseData = await secondCartResponse.json();
+        expect(responseData).toHaveProperty('message');
+        expect(responseData.message).toBe('Não é permitido ter mais de 1 carrinho');
+    });
 });
+
