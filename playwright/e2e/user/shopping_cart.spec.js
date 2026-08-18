@@ -84,4 +84,29 @@ test.describe('POST /carrinhos', () => {
 
         expect(responseData).toHaveProperty('message', 'Cadastro realizado com sucesso');
     });
+
+    test('it should return an error when creating a duplicate shopping cart', async ({ request }) => {
+        const response = await request.post('https://serverest.dev/carrinhos', {
+            data: {
+                produtos: [
+                    {
+                        idProduto: productId, // Substitua pelo ID do produto criado dinamicamente
+                        quantidade: 1
+                    }, {
+                        idProduto: productId, // Substitua pelo ID do produto criado dinamicamente
+                        quantidade: 3
+                    }
+                ]
+            },
+            headers: {
+                Authorization: authorization
+            }
+        });
+        expect(response.ok()).toBeFalsy();
+        expect(response.status()).toBe(400);
+
+        const responseData = await response.json();
+        expect(responseData).toHaveProperty('message');
+        expect(responseData.message).toBe('Não é permitido possuir produto duplicado');
+    });
 });
