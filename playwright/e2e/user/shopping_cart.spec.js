@@ -85,6 +85,35 @@ test.describe('POST /carrinhos', () => {
         expect(responseData).toHaveProperty('message', 'Cadastro realizado com sucesso');
     });
 
+    // TODO: Adicionar teste para criar carrinho com múltiplos produtos
+    test('it should create a shopping cart with multiple products successfully', async ({ request }) => {
+        const response = await request.post('https://serverest.dev/carrinhos', {
+            data: {
+                produtos: [
+                    {
+                        idProduto: productId,
+                        quantidade: 1
+                    },
+                    {
+                        idProduto: "YaeJ455lz3k6kSIzA", // Gerando um ID de produto fictício para simular múltiplos produtos
+                        quantidade: 3
+                    }
+                ]
+            },
+            headers: {
+                Authorization: authorization
+            }
+        });
+        expect(response.ok()).toBeTruthy();
+        expect(response.status()).toBe(201);
+
+        const responseData = await response.json();
+        expect(responseData).toHaveProperty('_id');
+        expect(responseData).toHaveProperty('message');
+
+        expect(responseData).toHaveProperty('message', 'Cadastro realizado com sucesso');
+    });
+
     test('it should return an error when creating a duplicate shopping cart', async ({ request }) => {
         const response = await request.post('https://serverest.dev/carrinhos', {
             data: {
