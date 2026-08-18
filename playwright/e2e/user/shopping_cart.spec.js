@@ -109,4 +109,28 @@ test.describe('POST /carrinhos', () => {
         expect(responseData).toHaveProperty('message');
         expect(responseData.message).toBe('Não é permitido possuir produto duplicado');
     });
+
+    test('it should validate the quantity of products in the shopping cart', async ({ request }) => {
+        const response = await request.post('https://serverest.dev/carrinhos', {
+            data: {
+                produtos: [
+                    {
+                        idProduto: productId, // Substitua pelo ID do produto criado dinamicamente
+                        quantidade: 0,
+                    }
+                ]
+            },
+            headers: {
+                Authorization: authorization
+            }
+        });
+        expect(response.ok()).toBeFalsy();
+        expect(response.status()).toBe(400);
+
+        const responseData = await response.json();
+        expect(responseData).toHaveProperty('produtos');
+
+        expect(responseData.produtos).toBe('produtos não contém 1 valor obrigatório');
+        console.log('Response data:', responseData);
+    });
 });
