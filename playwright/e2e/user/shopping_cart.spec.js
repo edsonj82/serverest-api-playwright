@@ -265,4 +265,26 @@ test.describe('POST /carrinhos', () => {
         // expect(responseData).toHaveProperty('message');
         expect(response.message).toBe('Token de acesso ausente, inválido, expirado ou usuário do token não existe mais');
     });
+
+    test('it should return an error when creating a shopping cart with an invalid authorization token', async ({ request }) => {
+        const response = await request.post('https://serverest.dev/carrinhos', {
+            data: {
+                produtos: [
+                    {
+                        idProduto: productId,
+                        quantidade: 1
+                    }
+                ]
+            },
+            headers: {
+                Authorization: 'invalid-token'
+            }
+        });
+        expect(response.ok()).toBeFalsy();
+        expect(response.status()).toBe(401);
+
+        const responseData = await response.json();
+        // expect(responseData).toHaveProperty('message');
+        expect(responseData.message).toBe('Token de acesso ausente, inválido, expirado ou usuário do token não existe mais');
+    });
 });
