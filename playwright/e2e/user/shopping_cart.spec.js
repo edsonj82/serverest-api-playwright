@@ -287,4 +287,29 @@ test.describe('POST /carrinhos', () => {
         // expect(responseData).toHaveProperty('message');
         expect(responseData.message).toBe('Token de acesso ausente, inválido, expirado ou usuário do token não existe mais');
     });
+
+    test('it should return an error when creating a shopping cart with an expired authorization token', async ({ request }) => {
+        // Simulando um token expirado (substitua pelo seu token real expirado)
+        const expiredToken = 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY0YjQ3YjE2YzM4ZDAwMDAxIiwibmFtZSI6IkpvaG4gRG9lIiwiZW1haWwiOiJqb2huLmRvZUBleGFtcGxlLmNvbSIsImFkbWluaXN0cmFkb3IiOnRydWUsImlhdCI6MTY5NzQyMDgwMCwiZXhwIjoxNjk3NDIwODAwfQ.invalidsignature';
+
+        const response = await request.post('https://serverest.dev/carrinhos', {
+            data: {
+                produtos: [
+                    {
+                        idProduto: productId,
+                        quantidade: 1
+                    }
+                ]
+            },
+            headers: {
+                Authorization: expiredToken
+            }
+        });
+        expect(response.ok()).toBeFalsy();
+        expect(response.status()).toBe(401);
+
+        const responseData = await response.json();
+        // expect(responseData).toHaveProperty('message');
+        expect(responseData.message).toBe('Token de acesso ausente, inválido, expirado ou usuário do token não existe mais');
+    });
 });
