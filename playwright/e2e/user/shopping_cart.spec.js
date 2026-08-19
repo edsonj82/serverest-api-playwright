@@ -312,4 +312,17 @@ test.describe('POST /carrinhos', () => {
         // expect(responseData).toHaveProperty('message');
         expect(responseData.message).toBe('Token de acesso ausente, inválido, expirado ou usuário do token não existe mais');
     });
+
+    test('it should return an error when creating a shopping cart with an empty product list', async ({ request }) => {
+        const response = await request.post('https://serverest.dev/carrinhos', {
+            data: {
+                produtos: []
+            },
+            headers: {
+                Authorization: authorization
+            }
+        });
+        expect(response.ok()).toBeFalsy();
+        expect(response.status()).toBe(400);
+    });
 });
