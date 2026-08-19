@@ -324,5 +324,33 @@ test.describe('POST /carrinhos', () => {
         });
         expect(response.ok()).toBeFalsy();
         expect(response.status()).toBe(400);
+
+        console.log('Response body:', await response.json());
+
+        const responseData = await response.json();
+        // expect(responseData['produtos[0].idProduto']).toBe('produtos[0].idProduto é obrigatório');
+        expect(responseData.produtos).toBe('produtos não contém 1 valor obrigatório');
+    });
+
+    test('it should return an error when creating a shopping cart with a missing product ID', async ({ request }) => {
+        const response = await request.post('https://serverest.dev/carrinhos', {
+            data: {
+                produtos: [
+                    {
+                        quantidade: 1
+                    }
+                ]
+            },
+            headers: {
+                Authorization: authorization
+            }
+        });
+        expect(response.ok()).toBeFalsy();
+        expect(response.status()).toBe(400);
+
+        console.log('Response body:', await response.json());
+
+        const responseData = await response.json();
+        expect(responseData['produtos[0].idProduto']).toBe('produtos[0].idProduto é obrigatório');
     });
 });
