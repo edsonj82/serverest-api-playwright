@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test'
 import { faker } from '@faker-js/faker'
+import { exitCode } from 'node:process';
 
 test.describe('POST /carrinhos', () => {
     let authorization, productId;
@@ -224,7 +225,7 @@ test.describe('POST /carrinhos', () => {
         expect(responseData.message).toBe('Produto não encontrado');
     })
 
-    test('it should return ane error when a shopping cart can not have suficient quantity of products', async ({ request }) => {
+    test('it should return an error when a shopping cart can not have suficient quantity of products', async ({ request }) => {
         const response = await request.post('https://serverest.dev/carrinhos', {
             data: {
                 produtos: [
@@ -244,5 +245,24 @@ test.describe('POST /carrinhos', () => {
         const responseData = await response.json();
         expect(responseData).toHaveProperty('message');
         expect(responseData.message).toBe('Produto não possui quantidade suficiente');
+    });
+
+    test('it should return an error when creating a shopping cart without authorization', async ({ request }) => {
+        const response = await request.post('https://serverest.dev/carrinhos', {
+            data: {
+                produtos: [
+                    {
+                        idProduto: productId,
+                        quantidade: 1
+                    }
+                ]
+            }
+        });
+        expect(response.ok()).toBeFalsy();
+        expect(response.status()).toBe(401);
+
+        console.log('Response body:', await response.json());
+        // expect(responseData).toHaveProperty('message');
+        expect(response.message).toBe('Token de acesso ausente, inválido, expirado ou usuário do token não existe mais');
     });
 });
