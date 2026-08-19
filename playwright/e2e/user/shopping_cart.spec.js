@@ -201,5 +201,48 @@ test.describe('POST /carrinhos', () => {
         expect(responseData).toHaveProperty('message');
         expect(responseData.message).toBe('Não é permitido ter mais de 1 carrinho');
     });
-});
 
+    test('it should return an error when creating a shopping cart with an invalid product ID', async ({ request }) => {
+        const response = await request.post('https://serverest.dev/carrinhos', {
+            data: {
+                produtos: [
+                    {
+                        idProduto: 'invalid-product-id',
+                        quantidade: 1
+                    }
+                ]
+            },
+            headers: {
+                Authorization: authorization
+            }
+        });
+        expect(response.ok()).toBeFalsy();
+        expect(response.status()).toBe(400);
+
+        const responseData = await response.json();
+        expect(responseData).toHaveProperty('message');
+        expect(responseData.message).toBe('Produto não encontrado');
+    })
+
+    test('it should return ane error when a shopping cart can not have suficient quantity of products', async ({ request }) => {
+        const response = await request.post('https://serverest.dev/carrinhos', {
+            data: {
+                produtos: [
+                    {
+                        idProduto: productId,
+                        quantidade: 1000 // Quantidade maior que a disponível
+                    }
+                ]
+            },
+            headers: {
+                Authorization: authorization
+            }
+        });
+        expect(response.ok()).toBeFalsy();
+        expect(response.status()).toBe(400);
+
+        const responseData = await response.json();
+        expect(responseData).toHaveProperty('message');
+        expect(responseData.message).toBe('Produto não possui quantidade suficiente');
+    });
+});
