@@ -375,4 +375,26 @@ test.describe('POST /carrinhos', () => {
         const responseData = await response.json();
         expect(responseData['produtos[0].quantidade']).toBe('produtos[0].quantidade é obrigatório');
     });
+
+    test('it should return an error when creating a shopping cart with a negative product quantity', async ({ request }) => {
+        const response = await request.post('https://serverest.dev/carrinhos', {
+            data: {
+                produtos: [
+                    {
+                        idProduto: '1',
+                        quantidade: -1
+                    }
+                ]
+            },
+            headers: {
+                Authorization: authorization
+            }
+        });
+        expect(response.ok()).toBeFalsy();
+        expect(response.status()).toBe(400);
+
+        const responseData = await response.json();
+        console.log('Response body:', responseData);
+        expect(responseData['produtos[0].quantidade']).toBe('produtos[0].quantidade deve ser um número positivo');
+    });
 });
