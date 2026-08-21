@@ -545,8 +545,8 @@ test.describe('GET /carrinhos', () => {
         expect(responseData.carrinhos[0]).toHaveProperty('quantidadeTotal');
         expect(responseData.carrinhos[0]).toHaveProperty('idUsuario');
         expect(responseData.carrinhos[0]).toHaveProperty('_id');
-        
-        
+
+
         expect(Array.isArray(responseData.carrinhos[0].produtos)).toBe(true);
         expect(responseData.carrinhos[0].produtos.length).toBeGreaterThan(0);
 
@@ -560,5 +560,49 @@ test.describe('GET /carrinhos', () => {
         expect(productInCart).toBeDefined();
         expect(productInCart.quantidade).toBe(1);
 
+    });
+
+    test('it should return all shopping carts for the user', async ({ request }) => {
+        // 1. Cria o carrinho
+        const createCartResponse = await request.post('https://serverest.dev/carrinhos', {
+            data: {
+                produtos: [
+                    {
+                        idProduto: productId,
+                        quantidade: 1
+                    }
+                ]
+            },
+            headers: {
+                'Content-Type': 'application/json',
+                'authorization': authorization
+            }
+        });
+
+        expect(createCartResponse.ok()).toBeTruthy();
+
+        // 2. Busca os carrinhos
+        const getCartResponse = await request.get('https://serverest.dev/carrinhos', {
+            headers: {
+                'Content-Type': 'application/json',
+                'authorization': authorization
+            }
+        });
+
+        expect(getCartResponse.ok()).toBeTruthy();
+        expect(getCartResponse.status()).toBe(200);
+
+        const responseData = await getCartResponse.json();
+
+        // console.log('Response data:', responseData.carrinhos[0]);
+        expect(responseData).toHaveProperty('carrinhos');
+        expect(responseData.carrinhos[0]).toHaveProperty('produtos');
+        expect(responseData.carrinhos[0].produtos[0]).toHaveProperty('idProduto');
+        expect(responseData.carrinhos[0].produtos[0]).toHaveProperty('quantidade');
+        expect(responseData.carrinhos[0].produtos[0]).toHaveProperty('precoUnitario');
+        expect(responseData.carrinhos[0]).toHaveProperty('precoTotal');
+        expect(responseData.carrinhos[0]).toHaveProperty('quantidadeTotal');
+        expect(responseData.carrinhos[0]).toHaveProperty('idUsuario');
+        expect(responseData.carrinhos[0]).toHaveProperty('_id');
     });
 });
