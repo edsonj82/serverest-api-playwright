@@ -605,4 +605,26 @@ test.describe('GET /carrinhos', () => {
         expect(responseData.carrinhos[0]).toHaveProperty('idUsuario');
         expect(responseData.carrinhos[0]).toHaveProperty('_id');
     });
+
+    test('it should return all shopping carts when retrieving without authorization', async ({ request }) => {
+        const response = await request.get('https://serverest.dev/carrinhos', {
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+
+        expect(response.ok()).toBeTruthy();
+        expect(response.status()).toBe(200);
+
+        const responseData = await response.json();
+        expect(responseData).toHaveProperty('carrinhos');
+        expect(responseData.carrinhos[0]).toHaveProperty('produtos');
+        expect(responseData.carrinhos[0].produtos[0]).toHaveProperty('idProduto');
+        expect(responseData.carrinhos[0].produtos[0]).toHaveProperty('quantidade');
+        expect(responseData.carrinhos[0].produtos[0]).toHaveProperty('precoUnitario');
+        expect(responseData.carrinhos[0]).toHaveProperty('precoTotal');
+        expect(responseData.carrinhos[0]).toHaveProperty('quantidadeTotal');
+        expect(responseData.carrinhos[0]).toHaveProperty('idUsuario');
+        expect(responseData.carrinhos[0]).toHaveProperty('_id');
+    });
 });
