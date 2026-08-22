@@ -627,4 +627,51 @@ test.describe('GET /carrinhos', () => {
         expect(responseData.carrinhos[0]).toHaveProperty('idUsuario');
         expect(responseData.carrinhos[0]).toHaveProperty('_id');
     });
+
+    test('it should return the shopping cart for a specific _id', async ({ request }) => {
+        // 1. Cria o carrinho
+        const createCartResponse = await request.post('https://serverest.dev/carrinhos', {
+            data: {
+                produtos: [
+                    {
+                        idProduto: productId,
+                        quantidade: 1
+                    }
+                ]
+            },
+            headers: {
+                'Content-Type': 'application/json',
+                'authorization': authorization
+            }
+        });
+
+        expect(createCartResponse.ok()).toBeTruthy();
+
+        const createCartData = await createCartResponse.json();
+        const cartId = createCartData._id;
+
+        // 2. Busca o carrinho específico pelo _id
+        const getCartResponse = await request.get(`https://serverest.dev/carrinhos/${cartId}`, {
+            headers: {
+                'Content-Type': 'application/json',
+                'authorization': authorization
+            }
+        });
+
+        expect(getCartResponse.ok()).toBeTruthy();
+
+        const getCartData = await getCartResponse.json();
+        console.log('Response data:', getCartData);
+
+        expect(getCartData._id).toBe(cartId);
+        expect(getCartData.produtos[0].idProduto).toBe(productId);
+        expect(getCartData.produtos[0].quantidade).toBe(1);
+
+        expect(getCartData).toHaveProperty('_id');
+        expect(getCartData).toHaveProperty('idUsuario');
+        expect(getCartData).toHaveProperty('produtos');
+        expect(getCartData.produtos[0]).toHaveProperty('idProduto');
+        expect(getCartData.produtos[0]).toHaveProperty('quantidade');
+        expect(getCartData.produtos[0]).toHaveProperty('precoUnitario');
+    });
 });
