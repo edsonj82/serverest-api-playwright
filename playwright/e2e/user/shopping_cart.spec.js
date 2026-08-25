@@ -667,11 +667,80 @@ test.describe('GET /carrinhos', () => {
         expect(getCartData.produtos[0].idProduto).toBe(productId);
         expect(getCartData.produtos[0].quantidade).toBe(1);
 
-        expect(getCartData).toHaveProperty('_id');
-        expect(getCartData).toHaveProperty('idUsuario');
         expect(getCartData).toHaveProperty('produtos');
         expect(getCartData.produtos[0]).toHaveProperty('idProduto');
         expect(getCartData.produtos[0]).toHaveProperty('quantidade');
         expect(getCartData.produtos[0]).toHaveProperty('precoUnitario');
+        expect(getCartData).toHaveProperty('precoTotal');
+        expect(getCartData).toHaveProperty('quantidadeTotal');
+        expect(getCartData).toHaveProperty('idUsuario');
+        expect(getCartData).toHaveProperty('_id');
+    });
+
+    test('it should return the shopping cart for a specific precoTotal', async ({ request }) => {
+
+        // 1. Cria o carrinho
+        const createCartResponse = await request.post('https://serverest.dev/carrinhos', {
+            data: {
+                produtos: [
+                    {
+                        idProduto: productId,
+                        quantidade: 1
+                    }
+                ]
+            },
+            headers: {
+                'Content-Type': 'application/json',
+                'authorization': authorization
+            }
+        });
+
+        expect(createCartResponse.ok()).toBeTruthy();
+
+        const createCartData = await createCartResponse.json();
+        const cartId = createCartData._id;
+
+        // 2. Busca o carrinho específico pelo _id
+        const getCartResponse = await request.get(`https://serverest.dev/carrinhos/${cartId}`, {
+            headers: {
+                'Content-Type': 'application/json',
+                'authorization': authorization
+            }
+        });
+
+        expect(getCartResponse.ok()).toBeTruthy();
+        expect(getCartResponse.status()).toBe(200);
+
+        const getCartData = await getCartResponse.json();
+
+        const precoTotal = getCartData.precoTotal; // Armazena o precoTotal do carrinho criado
+        console.log('precoTotal:', precoTotal);
+
+        // 3. Busca o carrinho específico pelo precoTotal
+        const getCartByPrecoTotalResponse = await request.get(`https://serverest.dev/carrinhos?precoTotal=${precoTotal}`, {
+            headers: {
+                'Content-Type': 'application/json',
+                'authorization': authorization
+            }
+        });
+
+        expect(getCartByPrecoTotalResponse.ok()).toBeTruthy();
+        expect(getCartByPrecoTotalResponse.status()).toBe(200);
+
+        const getCartByPrecoTotalData = await getCartByPrecoTotalResponse.json();
+        console.log('Response data for precoTotal:', getCartByPrecoTotalData);
+
+        expect(getCartData.precoTotal).toBe(getCartByPrecoTotalData.carrinhos[0].precoTotal);
+
+        expect(getCartByPrecoTotalData).toHaveProperty('carrinhos');
+        expect(getCartByPrecoTotalData.carrinhos[0]).toHaveProperty('produtos');
+        expect(getCartByPrecoTotalData.carrinhos[0].produtos[0]).toHaveProperty('idProduto');
+        expect(getCartByPrecoTotalData.carrinhos[0].produtos[0]).toHaveProperty('quantidade');
+        expect(getCartByPrecoTotalData.carrinhos[0].produtos[0]).toHaveProperty('precoUnitario');
+        expect(getCartByPrecoTotalData.carrinhos[0]).toHaveProperty('precoTotal');
+        expect(getCartByPrecoTotalData.carrinhos[0]).toHaveProperty('quantidadeTotal');
+        expect(getCartByPrecoTotalData.carrinhos[0]).toHaveProperty('idUsuario');
+        expect(getCartByPrecoTotalData.carrinhos[0]).toHaveProperty('_id');
+        
     });
 });
