@@ -658,6 +658,46 @@ test.describe('GET /produtos', () => {
         });
     });
 
+    test('it should return a specific product by id', async ({ request }) => {
+
+        const product = {
+            nome: `${faker.commerce.productName()} ${Date.now()}`,
+            preco: faker.number.int({ min: 10, max: 1000 }),
+            descricao: faker.commerce.productDescription(),
+            quantidade: faker.number.int({ min: 1, max: 100 })
+        };
+
+        const createResponse = await request.post('https://serverest.dev/produtos', {
+            data: product,
+            headers: {
+                'authorization': authorization
+            }
+        });
+        expect(createResponse.status()).toBe(201);
+
+        const createdProduct = await createResponse.json();
+        const productId = createdProduct._id;
+
+        const response = await request.get(`https://serverest.dev/produtos/${productId}`, {
+            headers: {
+                'Content-Type': 'application/json',
+                'authorization': authorization
+            }
+        });
+        expect(response.status()).toBe(200);
+        const responseData = await response.json();
+
+        expect(productId).toBe(responseData._id); // Verifica se o ID do produto retornado é o mesmo que o ID do produto criado
+
+        console.log('Response Data:', responseData); // Log para depuração
+
+        expect(responseData).toHaveProperty('_id');
+        expect(responseData).toHaveProperty('nome');
+        expect(responseData).toHaveProperty('preco');
+        expect(responseData).toHaveProperty('descricao');
+        expect(responseData).toHaveProperty('quantidade');
+    });
+
     test('it should return a list when the token is missing', async ({ request }) => {
         const response = await request.get('https://serverest.dev/produtos', {
             headers: {
