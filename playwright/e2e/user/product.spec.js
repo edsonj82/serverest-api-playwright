@@ -698,26 +698,47 @@ test.describe('GET /produtos', () => {
         expect(responseData).toHaveProperty('quantidade');
     });
 
-    test('it should return a list when the token is missing', async ({ request }) => {
-        const response = await request.get('https://serverest.dev/produtos', {
+    test('it should return a specific product by nome', async ({ request }) => {
+        const product = {
+            nome: `${faker.commerce.productName()} ${Date.now()}`,
+            preco: faker.number.int({ min: 10, max: 1000 }),
+            descricao: faker.commerce.productDescription(),
+            quantidade: faker.number.int({ min: 1, max: 100 })
+        };
+
+        const createResponse = await request.post('https://serverest.dev/produtos', {
+            data: product,
             headers: {
-                'Content-Type': 'application/json',
-                // 'authorization' header is missing
+                'authorization': authorization
             }
         });
+        const productName = product.nome; // Armazena o nome do produto criado para usar na busca   
+
+        expect(createResponse.status()).toBe(201);
+        const createdProduct = await createResponse.json();
+
+        const response = await request.get(`https://serverest.dev/produtos?nome=${productName}`, {
+            headers: {
+                'Content-Type': 'application/json',
+                'authorization': authorization
+            }
+        });
+
         expect(response.status()).toBe(200);
         const responseData = await response.json();
-        console.log('Response Data:', responseData); // Log para depuração
 
         expect(Array.isArray(responseData.produtos)).toBe(true);
+        console.log('Response Data:', responseData); // Log para depuração
+
+        expect(productName).toBe(responseData.produtos[0].nome); // Verifica se o nome do produto retornado é o mesmo que o nome do produto criado
 
         expect(responseData.produtos.length).toBeGreaterThan(0);
         responseData.produtos.forEach(product => {
-            expect(product).toHaveProperty('_id');
             expect(product).toHaveProperty('nome');
             expect(product).toHaveProperty('preco');
             expect(product).toHaveProperty('descricao');
             expect(product).toHaveProperty('quantidade');
+            expect(product).toHaveProperty('_id');
         });
     });
 
