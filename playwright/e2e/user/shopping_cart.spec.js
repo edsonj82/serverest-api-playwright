@@ -741,6 +741,69 @@ test.describe('GET /carrinhos', () => {
         expect(getCartByPrecoTotalData.carrinhos[0]).toHaveProperty('quantidadeTotal');
         expect(getCartByPrecoTotalData.carrinhos[0]).toHaveProperty('idUsuario');
         expect(getCartByPrecoTotalData.carrinhos[0]).toHaveProperty('_id');
-        
+
+    });
+
+    test('it should return the shopping cart for a specific quantidadeTotal', async ({ request }) => {
+
+        // 1. Cria o carrinho
+        const createCartResponse = await request.post('https://serverest.dev/carrinhos', {
+            data: {
+                produtos: [
+                    {
+                        idProduto: productId,
+                        quantidade: 1
+                    }
+                ]
+            },
+            headers: {
+                'Content-Type': 'application/json',
+                'authorization': authorization
+            }
+
+        });
+        expect(createCartResponse.ok()).toBeTruthy();
+
+        const createCartData = await createCartResponse.json();
+        const cartId = createCartData._id;
+
+        // 2. Busca o carrinho específico pelo _id
+        const getCartResponse = await request.get(`https://serverest.dev/carrinhos/${cartId}`, {
+            headers: {
+                'Content-Type': 'application/json',
+                'authorization': authorization
+            }
+        });
+        expect(getCartResponse.ok()).toBeTruthy();
+        expect(getCartResponse.status()).toBe(200);
+
+        const getCartData = await getCartResponse.json();
+        const quantidadeTotal = getCartData.quantidadeTotal;
+        console.log('quantidadeTotal:', quantidadeTotal);
+
+        // 3. Busca o carrinho específico pelo quantidadeTotal
+        const getCartByQuantidadeTotalResponse = await request.get(`https://serverest.dev/carrinhos?quantidadeTotal=${quantidadeTotal}`, {
+            headers: {
+                'Content-Type': 'application/json',
+                'authorization': authorization
+            }
+        });
+        expect(getCartByQuantidadeTotalResponse.ok()).toBeTruthy();
+        expect(getCartByQuantidadeTotalResponse.status()).toBe(200);
+
+        const getCartByQuantidadeTotalData = await getCartByQuantidadeTotalResponse.json();
+        console.log('Response data for quantidadeTotal:', getCartByQuantidadeTotalData);
+
+        expect(getCartData.quantidadeTotal).toBe(getCartByQuantidadeTotalData.carrinhos[0].quantidadeTotal);
+
+        expect(getCartByQuantidadeTotalData).toHaveProperty('carrinhos');
+        expect(getCartByQuantidadeTotalData.carrinhos[0]).toHaveProperty('produtos');
+        expect(getCartByQuantidadeTotalData.carrinhos[0].produtos[0]).toHaveProperty('idProduto');
+        expect(getCartByQuantidadeTotalData.carrinhos[0].produtos[0]).toHaveProperty('quantidade');
+        expect(getCartByQuantidadeTotalData.carrinhos[0].produtos[0]).toHaveProperty('precoUnitario');
+        expect(getCartByQuantidadeTotalData.carrinhos[0]).toHaveProperty('precoTotal');
+        expect(getCartByQuantidadeTotalData.carrinhos[0]).toHaveProperty('quantidadeTotal');
+        expect(getCartByQuantidadeTotalData.carrinhos[0]).toHaveProperty('idUsuario');
+        expect(getCartByQuantidadeTotalData.carrinhos[0]).toHaveProperty('_id');
     });
 });
