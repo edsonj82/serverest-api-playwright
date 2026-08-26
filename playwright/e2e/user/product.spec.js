@@ -743,47 +743,90 @@ test.describe('GET /produtos', () => {
     });
 
     test('it should return a specific product by preco', async ({ request }) => {
-    const product = {
-        nome: `${faker.commerce.productName()} ${Date.now()}`,
-        preco: faker.number.int({ min: 10, max: 1000 }),
-        descricao: faker.commerce.productDescription(),
-        quantidade: faker.number.int({ min: 1, max: 100 })
-    };
-    const createResponse = await request.post('https://serverest.dev/produtos', {
-        data: product,
-        headers: {
-            'authorization': authorization
-        }
+        const product = {
+            nome: `${faker.commerce.productName()} ${Date.now()}`,
+            preco: faker.number.int({ min: 10, max: 1000 }),
+            descricao: faker.commerce.productDescription(),
+            quantidade: faker.number.int({ min: 1, max: 100 })
+        };
+        const createResponse = await request.post('https://serverest.dev/produtos', {
+            data: product,
+            headers: {
+                'authorization': authorization
+            }
+        });
+        const productPrice = product.preco; // Armazena o preço do produto criado para usar na busca   
+
+        expect(createResponse.status()).toBe(201);
+        const createdProduct = await createResponse.json();
+
+        const response = await request.get(`https://serverest.dev/produtos?preco=${productPrice}`, {
+            headers: {
+                'Content-Type': 'application/json',
+                'authorization': authorization
+            }
+        });
+
+        expect(response.status()).toBe(200);
+        const responseData = await response.json();
+
+        expect(Array.isArray(responseData.produtos)).toBe(true);
+        console.log('Response Data:', responseData); // Log para depuração
+
+        expect(productPrice).toBe(responseData.produtos[0].preco); // Verifica se o preço do produto retornado é o mesmo que o preço do produto criado
+
+        expect(responseData.produtos.length).toBeGreaterThan(0);
+        responseData.produtos.forEach(product => {
+            expect(product).toHaveProperty('nome');
+            expect(product).toHaveProperty('preco');
+            expect(product).toHaveProperty('descricao');
+            expect(product).toHaveProperty('quantidade');
+            expect(product).toHaveProperty('_id');
+        });
     });
-    const productPrice = product.preco; // Armazena o preço do produto criado para usar na busca   
 
-    expect(createResponse.status()).toBe(201);
-    const createdProduct = await createResponse.json();
+    test('it should return a specific product by descricao', async ({ request }) => {
+        const product = {
+            nome: `${faker.commerce.productName()} ${Date.now()}`,
+            preco: faker.number.int({ min: 10, max: 1000 }),
+            descricao: faker.commerce.productDescription(),
+            quantidade: faker.number.int({ min: 1, max: 100 })
+        };
+        const createResponse = await request.post('https://serverest.dev/produtos', {
+            data: product,
+            headers: {
+                'authorization': authorization
+            }
+        });
+        const productDescription = product.descricao; // Armazena a descrição do produto criado para usar na busca
 
-    const response = await request.get(`https://serverest.dev/produtos?preco=${productPrice}`, {
-        headers: {
-            'Content-Type': 'application/json',
-            'authorization': authorization
-        }
+        expect(createResponse.status()).toBe(201);
+        const createdProduct = await createResponse.json();
+
+        const response = await request.get(`https://serverest.dev/produtos?descricao=${productDescription}`, {
+            headers: {
+                'Content-Type': 'application/json',
+                'authorization': authorization
+            }
+        });
+
+        expect(response.status()).toBe(200);
+        const responseData = await response.json();
+
+        expect(Array.isArray(responseData.produtos)).toBe(true);
+        console.log('Response Data:', responseData); // Log para depuração
+
+        expect(productDescription).toBe(responseData.produtos[0].descricao); // Verifica se a descrição do produto retornado é a mesma que a descrição do produto criado
+
+        expect(responseData.produtos.length).toBeGreaterThan(0);
+        responseData.produtos.forEach(product => {
+            expect(product).toHaveProperty('nome');
+            expect(product).toHaveProperty('preco');
+            expect(product).toHaveProperty('descricao');
+            expect(product).toHaveProperty('quantidade');
+            expect(product).toHaveProperty('_id');
+        });
     });
-
-    expect(response.status()).toBe(200);
-    const responseData = await response.json();
-
-    expect(Array.isArray(responseData.produtos)).toBe(true);
-    console.log('Response Data:', responseData); // Log para depuração
-
-    expect(productPrice).toBe(responseData.produtos[0].preco); // Verifica se o preço do produto retornado é o mesmo que o preço do produto criado
-
-    expect(responseData.produtos.length).toBeGreaterThan(0);
-    responseData.produtos.forEach(product => {
-        expect(product).toHaveProperty('nome');
-        expect(product).toHaveProperty('preco');
-        expect(product).toHaveProperty('descricao');
-        expect(product).toHaveProperty('quantidade');
-        expect(product).toHaveProperty('_id');
-    });
-});
 
     test('it should return a list when the token is invalid', async ({ request }) => {
         const invalid_token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIn0.SflKxwRJSMeKKF2jWBLfI8T4JdF-P_A6gU3P-XoDq3o';
