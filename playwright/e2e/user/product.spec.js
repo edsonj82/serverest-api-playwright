@@ -828,6 +828,49 @@ test.describe('GET /produtos', () => {
         });
     });
 
+    test('it should return a specific product by quantidade', async ({ request }) => {
+        const product = {
+            nome: faker.commerce.productName(),
+            preco: faker.number.int({ min: 10, max: 1000 }),
+            descricao: faker.commerce.productDescription(),
+            quantidade: faker.number.int({ min: 1, max: 100 })
+        };
+        const createResponse = await request.post('https://serverest.dev/produtos', {
+            data: product,
+            headers: {
+                'authorization': authorization
+            }
+        });
+        const productQuantity = product.quantidade; // Armazena a quantidade do produto criado para usar na busca
+
+        expect(createResponse.status()).toBe(201);
+        const createdProduct = await createResponse.json();
+
+        const response = await request.get(`https://serverest.dev/produtos?quantidade=${productQuantity}`, {
+            headers: {
+                'Content-Type': 'application/json',
+                'authorization': authorization
+            }
+        });
+
+        expect(response.status()).toBe(200);
+        const responseData = await response.json();
+
+        expect(Array.isArray(responseData.produtos)).toBe(true);
+        console.log('Response Data:', responseData); // Log para depuração
+
+        expect(productQuantity).toBe(responseData.produtos[0].quantidade); // Verifica se a quantidade do produto retornado é a mesma que a quantidade do produto criado
+
+        expect(responseData.produtos.length).toBeGreaterThan(0);
+        responseData.produtos.forEach(product => {
+            expect(product).toHaveProperty('nome');
+            expect(product).toHaveProperty('preco');
+            expect(product).toHaveProperty('descricao');
+            expect(product).toHaveProperty('quantidade');
+            expect(product).toHaveProperty('_id');
+        });
+    });
+
     test('it should return a list when the token is invalid', async ({ request }) => {
         const invalid_token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIn0.SflKxwRJSMeKKF2jWBLfI8T4JdF-P_A6gU3P-XoDq3o';
         const response = await request.get('https://serverest.dev/produtos', {
