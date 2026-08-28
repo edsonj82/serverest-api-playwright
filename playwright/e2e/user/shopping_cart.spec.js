@@ -869,3 +869,108 @@ test.describe('GET /carrinhos', () => {
         expect(getCartByIdUsuarioData.carrinhos[0]).toHaveProperty('_id');
     });
 });
+
+test.describe('GET /carrinhos/:id', () => {
+    let authorization, productId, cartId;
+
+    test.beforeAll(async ({ request }) => {
+        // 1. Dados do usuário Administrador
+        const firstName = faker.person.firstName();
+        const lastName = faker.person.lastName();
+        const fullName = `${firstName} ${lastName}`;
+        const email = faker.internet.email({ firstName, lastName }).toLowerCase();
+        const password = faker.internet.password();
+
+        const user = {
+            nome: fullName,
+            email: email,
+            password: password,
+            administrador: 'true' // Obrigatório ser string 'true' no ServeRest
+        };
+
+        // 2. Criar usuário admin
+        const response = await request.post('https://serverest.dev/usuarios', {
+            data: user
+        });
+        expect(response.ok()).toBeTruthy();
+
+        // 3. Fazer login para capturar o Token
+        const loginResponse = await request.post('https://serverest.dev/login', {
+            data: {
+                email: email,
+                password: password
+            }
+        });
+        expect(loginResponse.ok()).toBeTruthy();
+        const loginData = await loginResponse.json();
+        authorization = loginData.authorization;
+
+        // 4. Criar um produto para adicionar ao carrinho
+        const product = {
+            nome: faker.commerce.productName(),
+            preco: faker.number.int({ min: 10, max: 1000 }),
+            descricao: faker.commerce.productDescription(),
+            quantidade: faker.number.int({ min: 1, max: 10 })
+        };
+
+        const productResponse = await request.post('https://serverest.dev/produtos', {
+            data: product,
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': authorization
+            }
+        });
+
+        // console.log('Product creation response:', await productResponse.json());
+        expect(productResponse.ok()).toBeTruthy();
+        const productData = await productResponse.json();
+        productId = productData._id;
+
+        // 5. Criar um carrinho para o usuário
+        const createCartResponse = await request.post('https://serverest.dev/carrinhos', {
+            data: {
+                produtos: [
+                    {
+                        idProduto: productId,
+                        quantidade: 1
+                    }
+                ]
+            },
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': authorization
+            }
+        });
+        expect(createCartResponse.ok()).toBeTruthy();
+        const createCartData = await createCartResponse.json();
+        cartId = createCartData._id;
+    });
+
+    test('it should return a shopping cart by its ID', async ({ request }) => {
+        const response = await request.get(`https://serverest.dev/carrinhos/${cartId}`, {
+            headers: {
+                'Authorization': authorization
+            }
+        });
+        expect(response.ok()).toBeTruthy();
+        expect(response.status()).toBe(200);
+
+        const responseData = await response.json();
+        console.log('Response data:', responseData);
+
+        expect(Array.isArray(responseData.produtos)).toBe(true);
+
+        expect(responseData).toHaveProperty('produtos');
+        expect(responseData.produtos[0]).toHaveProperty('idProduto', productId);
+        expect(responseData.produtos[0]).toHaveProperty('quantidade', 1);
+        expect(responseData.produtos[0]).toHaveProperty('precoUnitario');
+        expect(responseData).toHaveProperty('precoTotal');
+        expect(responseData).toHaveProperty('quantidadeTotal');
+        expect(responseData).toHaveProperty('idUsuario');
+        expect(responseData).toHaveProperty('_id', cartId);
+
+        expect(responseData.produtos[0].idProduto).toBe(productId);
+        expect(responseData.produtos[0].quantidade).toBe(1);
+        expect(responseData._id).toBe(cartId);
+    });
+});
