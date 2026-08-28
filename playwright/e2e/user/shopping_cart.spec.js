@@ -984,7 +984,21 @@ test.describe('GET /carrinhos/:id', () => {
         expect(response.ok()).toBeFalsy();
         expect(response.status()).toBe(400);
         const responseData = await response.json();
-        
+
+        expect(responseData).toHaveProperty('id', 'id deve ter exatamente 16 caracteres alfanuméricos');
+    });
+
+    test('it should return an error when trying to retrieve a shopping cart with a non-existent ID', async ({ request }) => {
+        const nonExistentCartId = '64b47b16c38d000001';
+        const response = await request.get(`https://serverest.dev/carrinhos/${nonExistentCartId}`, {
+            headers: {
+                'Authorization': authorization
+            }
+        });
+        expect(response.ok()).toBeFalsy();
+        expect(response.status()).toBe(400);
+        const responseData = await response.json();
+
         expect(responseData).toHaveProperty('id', 'id deve ter exatamente 16 caracteres alfanuméricos');
     });
 });
