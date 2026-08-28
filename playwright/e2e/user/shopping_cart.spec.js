@@ -974,6 +974,28 @@ test.describe('GET /carrinhos/:id', () => {
         expect(responseData._id).toBe(cartId);
     });
 
+   test('it should return when trying to retrieve a shopping cart without authorization', async ({ request }) => {
+        const response = await request.get(`https://serverest.dev/carrinhos/${cartId}`);
+        console.log('Response body:', await response.json());
+        
+        expect(response.ok()).toBeTruthy();
+        expect(response.status()).toBe(200);
+        const responseData = await response.json();
+        
+        expect(responseData).toHaveProperty('produtos');
+        expect(responseData.produtos[0]).toHaveProperty('idProduto', productId);
+        expect(responseData.produtos[0]).toHaveProperty('quantidade', 1);
+        expect(responseData.produtos[0]).toHaveProperty('precoUnitario');
+        expect(responseData).toHaveProperty('precoTotal');
+        expect(responseData).toHaveProperty('quantidadeTotal');
+        expect(responseData).toHaveProperty('idUsuario');
+        expect(responseData).toHaveProperty('_id', cartId);
+
+        expect(responseData.produtos[0].idProduto).toBe(productId);
+        expect(responseData.produtos[0].quantidade).toBe(1);
+        expect(responseData._id).toBe(cartId);
+    });
+
     test('it should return an error when trying to retrieve a shopping cart with an invalid ID', async ({ request }) => {
         const invalidCartId = 'invalid-id';
         const response = await request.get(`https://serverest.dev/carrinhos/${invalidCartId}`, {
@@ -1001,4 +1023,5 @@ test.describe('GET /carrinhos/:id', () => {
 
         expect(responseData).toHaveProperty('id', 'id deve ter exatamente 16 caracteres alfanuméricos');
     });
+ 
 });
