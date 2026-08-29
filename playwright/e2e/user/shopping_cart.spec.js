@@ -1181,4 +1181,21 @@ test.describe('DELETE /carrinhos/concluir-compra', () => {
         expect(responseData).toEqual({ message: 'Token de acesso ausente, inválido, expirado ou usuário do token não existe mais' });
     });
 
+        test('it should return error when trying to conclude purchase with invalid token', async ({ request }) => {
+        const invalidToken = 'Bearer invalid-token';
+        const response = await request.delete('https://serverest.dev/carrinhos/concluir-compra', {
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': invalidToken
+            }
+        });
+
+        expect(response.ok()).toBeFalsy();
+        expect(response.status()).toBe(401);
+
+        const responseData = await response.json();
+
+        console.log('Response body:', responseData);
+        expect(responseData).toEqual({ message: 'Token de acesso ausente, inválido, expirado ou usuário do token não existe mais' });
+    });
 });
