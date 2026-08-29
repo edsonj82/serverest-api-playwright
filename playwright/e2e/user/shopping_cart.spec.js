@@ -1198,4 +1198,25 @@ test.describe('DELETE /carrinhos/concluir-compra', () => {
         console.log('Response body:', responseData);
         expect(responseData).toEqual({ message: 'Token de acesso ausente, inválido, expirado ou usuário do token não existe mais' });
     });
+
+    test('it should return error when trying to conclude purchase with expired token', async ({ request }) => {
+
+        // 1. Simular expiração do token (isso depende de como o backend lida com tokens)
+        // Aqui, apenas para fins de teste, vamos usar um token "expirado"
+        const expired_token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImxlbGFuZC5vY29ubmVyQGdtYWlsLmNvbSIsInBhc3N3b3JkIjoic0owUUp5dkxQWkRSZng4IiwiaWF0IjoxNzg1Nzk2ODgxLCJleHAiOjE3ODU3OTc0ODF9.K-57b8Vd3IbCWZUh8qSpb63YqCp1UchJO2sEXyZp7h4';
+
+        const response = await request.delete('https://serverest.dev/carrinhos/concluir-compra', {
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': expired_token
+            }
+        });
+        expect(response.ok()).toBeFalsy();
+        expect(response.status()).toBe(401);
+
+        const responseData = await response.json();
+        console.log('Response body:', responseData);
+        expect(responseData).toEqual({ message: 'Token de acesso ausente, inválido, expirado ou usuário do token não existe mais' });
+    });
+
 });
