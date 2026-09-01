@@ -1375,5 +1375,54 @@ test.describe('DELETE /carrinhos/cancelar-compra', () => {
         expect(response.status()).toBe(200);
         expect(await response.json()).toEqual({ message: 'Registro excluído com sucesso. Estoque dos produtos reabastecido' });
     });
-    
+
+    test('it should return error when a shopping cart is not found for the user', async ({ request }) => {
+        // 1. Dados do usuário Administrador
+        const firstName = faker.person.firstName();
+        const lastName = faker.person.lastName();
+        const fullName = `${firstName} ${lastName}`;
+        const email = faker.internet.email({ firstName, lastName }).toLowerCase();
+        const password = faker.internet.password();
+
+        const user = {
+            nome: fullName,
+            email: email,
+            password: password,
+            administrador: 'true' // Obrigatório ser string 'true' no ServeRest
+        };
+
+        // 2. Criar usuário admin
+        const userResponse = await request.post('https://serverest.dev/usuarios', {
+            data: user
+        });
+        expect(userResponse.ok()).toBeTruthy();
+
+        // 3. Fazer login para capturar o Token
+        const loginResponse = await request.post('https://serverest.dev/login', {
+            data: {
+                email: email,
+                password: password
+            }
+        });
+
+        expect(loginResponse.ok()).toBeTruthy();
+        const loginData = await loginResponse.json();
+
+        const newUSerToken = loginData.authorization;
+
+        // 4. Tentar concluir a compra com o novo usuário (sem carrinho)
+        const response = await request.delete('https://serverest.dev/carrinhos/cancelar-compra', {
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': newUSerToken
+            }
+        });
+        expect(response.ok()).toBeTruthy();
+        expect(response.status()).toBe(200);
+
+        const responseData = await response.json();
+        console.log('Response body:', responseData);
+        expect(responseData).toEqual({ message: 'Não foi encontrado carrinho para esse usuário' });
+    });
+
 });
