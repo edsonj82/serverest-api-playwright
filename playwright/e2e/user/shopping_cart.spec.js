@@ -1425,4 +1425,21 @@ test.describe('DELETE /carrinhos/cancelar-compra', () => {
         expect(responseData).toEqual({ message: 'Não foi encontrado carrinho para esse usuário' });
     });
 
+    test('it should return error when trying to conclude purchase without authorization', async ({ request }) => {
+        const response = await request.delete('https://serverest.dev/carrinhos/cancelar-compra', {
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': ''
+            }
+        });
+
+        expect(response.ok()).toBeFalsy();
+        expect(response.status()).toBe(401);
+
+        const responseData = await response.json();
+
+        console.log('Response body:', responseData);
+        expect(responseData).toEqual({ message: 'Token de acesso ausente, inválido, expirado ou usuário do token não existe mais' });
+    });
+
 });
