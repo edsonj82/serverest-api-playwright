@@ -1480,4 +1480,73 @@ test.describe('DELETE /carrinhos/cancelar-compra', () => {
         expect(responseData).toEqual({ message: 'Token de acesso ausente, inválido, expirado ou usuário do token não existe mais' });
     });
 
+    test('it should return error when trying to conclude purchase with a token of a deleted user', async ({ request }) => {
+        // 1. Dados do usuário Administrador
+        const firstName = faker.person.firstName();
+        const lastName = faker.person.lastName();
+        const fullName = `${firstName} ${lastName}`;
+        const email = faker.internet.email({ firstName, lastName }).toLowerCase();
+        const password = faker.internet.password();
+
+        const user = {
+            nome: fullName,
+            email: email,
+            password: password,
+            administrador: 'true'
+        };
+
+        // 2. Criar usuário admin
+        const response = await request.post('https://serverest.dev/usuarios', {
+            data: user
+        });
+
+        expect(response.ok()).toBeTruthy();
+
+        const createResponseBody = await response.json();
+        const userId = createResponseBody._id;
+        console.log('userId:', userId);
+
+        // 3. Fazer login para capturar o Token
+        const loginResponse = await request.post('https://serverest.dev/login', {
+            data: {
+                email: email,
+                password: password
+            }
+        });
+
+        expect(loginResponse.ok()).toBeTruthy();
+        const loginData = await loginResponse.json();
+
+        authorization = loginData.authorization;
+
+        // 4. Deletar o usuário
+        const deleteUserResponse = await request.delete(`https://serverest.dev/usuarios/${userId}`, {
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': authorization
+            }
+        });
+
+        expect(deleteUserResponse.ok()).toBeTruthy();
+        expect(deleteUserResponse.status()).toBe(200);
+
+        const deleteUserData = await deleteUserResponse.json();
+        expect(deleteUserData).toEqual({ message: 'Registro excluído com sucesso' });
+
+        // 5. Tentar concluir a compra com o token do usuário deletado
+        const deleteResponse = await request.delete('https://serverest.dev/carrinhos/cancelar-compra', {
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': authorization
+            }
+        });
+
+        expect(deleteResponse.ok()).toBeFalsy();
+        expect(deleteResponse.status()).toBe(401);
+
+        const responseData = await deleteResponse.json();
+        // console.log('Response body:', deleteResponse);
+        expect(responseData).toEqual({ message: 'Token de acesso ausente, inválido, expirado ou usuário do token não existe mais' });
+    });
+
 });
