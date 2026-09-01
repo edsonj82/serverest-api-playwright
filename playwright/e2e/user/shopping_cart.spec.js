@@ -1288,3 +1288,92 @@ test.describe('DELETE /carrinhos/concluir-compra', () => {
         expect(responseData).toEqual({ message: 'Token de acesso ausente, inválido, expirado ou usuário do token não existe mais' });
     });
 });
+
+test.describe('DELETE /carrinhos/cancelar-compra', () => {
+    let authorization, productId, cartId;
+
+    test.beforeAll(async ({ request }) => {
+        // 1. Dados do usuário Administrador
+        const firstName = faker.person.firstName();
+        const lastName = faker.person.lastName();
+        const fullName = `${firstName} ${lastName}`;
+        const email = faker.internet.email({ firstName, lastName }).toLowerCase();
+        const password = faker.internet.password();
+
+        const user = {
+            nome: fullName,
+            email: email,
+            password: password,
+            administrador: 'true' // Obrigatório ser string 'true' no ServeRest
+        };
+
+        // 2. Criar usuário admin
+        const response = await request.post('https://serverest.dev/usuarios', {
+            data: user
+        });
+        expect(response.ok()).toBeTruthy();
+
+        // 3. Fazer login para capturar o Token
+        const loginResponse = await request.post('https://serverest.dev/login', {
+            data: {
+                email: email,
+                password: password
+            }
+        });
+        expect(loginResponse.ok()).toBeTruthy();
+        const loginData = await loginResponse.json();
+        authorization = loginData.authorization;
+
+        // 4. Criar um produto para adicionar ao carrinho
+        const product = {
+            nome: faker.commerce.productName(),
+            preco: faker.number.int({ min: 10, max: 1000 }),
+            descricao: faker.commerce.productDescription(),
+            quantidade: faker.number.int({ min: 1, max: 10 })
+        };
+
+        const productResponse = await request.post('https://serverest.dev/produtos', {
+            data: product,
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': authorization
+            }
+        });
+
+        // console.log('Product creation response:', await productResponse.json());
+        expect(productResponse.ok()).toBeTruthy();
+        const productData = await productResponse.json();
+        productId = productData._id;
+
+        // 5. Criar um carrinho para o usuário
+        const createCartResponse = await request.post('https://serverest.dev/carrinhos', {
+            data: {
+                produtos: [
+                    {
+                        idProduto: productId,
+                        quantidade: 1
+                    }
+                ]
+            },
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': authorization
+            }
+        });
+        expect(createCartResponse.ok()).toBeTruthy();
+        const createCartData = await createCartResponse.json();
+        cartId = createCartData._id;
+    });
+
+    test('it should cancel the purchase of a shopping cart successfully', async ({ request }) => {
+        const response = await request.delete('https://serverest.dev/carrinhos/cancelar-compra', {
+            headers: {
+                'Authorization': authorization
+            }
+        });
+        expect(response.ok()).toBeTruthy();
+        expect(response.status()).toBe(200);
+        expect(await response.json()).toEqual({ message: 'Registro excluído com sucesso. Estoque dos produtos reabastecido' });
+    });
+    
+});
