@@ -37,10 +37,11 @@ test.describe('POST /usuarios', () => {
 
         const responseBody = await response.json();
 
-        expect(responseBody).toHaveProperty('message', 'Cadastro realizado com sucesso');
         expect(responseBody).toHaveProperty('_id');
         expect(responseBody).not.toHaveProperty('password');
         expect(responseBody).not.toHaveProperty('administrador');
+
+        expect(responseBody).toHaveProperty('message', 'Cadastro realizado com sucesso');
 
     });
 
@@ -109,9 +110,8 @@ test.describe('POST /usuarios', () => {
         expect(response.status()).toBe(400);
 
         const responseBody = await response.json();
-
-        console.log('Response body:', responseBody); // Adicione esta linha para depuração
-        expect(responseBody.nome).toBe('nome não pode ficar em branco');
+        // console.log('Response body:', responseBody); // Adicione esta linha para depuração
+        expect(responseBody).toHaveProperty('nome', 'nome não pode ficar em branco');
     });
 
     test('name field is required', async ({ request }) => {
@@ -133,9 +133,8 @@ test.describe('POST /usuarios', () => {
         expect(response.status()).toBe(400);
 
         const responseBody = await response.json();
-
-        console.log('Response body:', responseBody); // Adicione esta linha para depuração
-        expect(responseBody.nome).toBe('nome é obrigatório');
+        // console.log('Response body:', responseBody); // Adicione esta linha para depuração
+        expect(responseBody).toHaveProperty('nome', 'nome é obrigatório');
     });
 
     test('email field should not be empty', async ({ request }) => {
@@ -158,9 +157,8 @@ test.describe('POST /usuarios', () => {
         expect(response.status()).toBe(400);
 
         const responseBody = await response.json();
-
-        console.log('Response body:', responseBody); // Adicione esta linha para depuração
-        expect(responseBody.email).toBe('email não pode ficar em branco');
+        // console.log('Response body:', responseBody); // Adicione esta linha para depuração
+        expect(responseBody).toHaveProperty('email', 'email não pode ficar em branco')
     });
 
     test('email field should be valid', async ({ request }) => {
@@ -183,9 +181,8 @@ test.describe('POST /usuarios', () => {
         expect(response.status()).toBe(400);
 
         const responseBody = await response.json();
-
-        console.log('Response body:', responseBody); // Adicione esta linha para depuração
-        expect(responseBody.email).toBe('email deve ser um email válido');
+        // console.log('Response body:', responseBody); // Adicione esta linha para depuração
+        expect(responseBody).toHaveProperty('email', 'email deve ser um email válido')
     });
 
     test('email field is required', async ({ request }) => {
@@ -208,9 +205,8 @@ test.describe('POST /usuarios', () => {
         expect(response.status()).toBe(400);
 
         const responseBody = await response.json();
-
-        console.log('Response body:', responseBody); // Adicione esta linha para depuração
-        expect(responseBody.email).toBe('email é obrigatório');
+        // console.log('Response body:', responseBody); // Adicione esta linha para depuração
+        expect(responseBody).toHaveProperty('email', 'email é obrigatório')
     });
 
     invalidEmailScenarios.forEach(({ email, reason }) => {// Iteramos criando um teste para cada cenário
@@ -232,13 +228,13 @@ test.describe('POST /usuarios', () => {
             expect(response.status()).toBe(400);
 
             const responseBody = await response.json();
-
             // Dependendo se o e-mail for totalmente vazio ou mal formatado, 
             // a API do ServeRest costuma retornar a mensagem no campo correspondente
             if (email === '') {
-                expect(responseBody.email).toBe('email não pode ficar em branco');
+                expect(responseBody).toHaveProperty('email', 'email não pode ficar em branco')
+
             } else {
-                expect(responseBody.email).toBe('email deve ser um email válido');
+                expect(responseBody).toHaveProperty('email', 'email deve ser um email válido')
             }
         });
     });
@@ -263,9 +259,8 @@ test.describe('POST /usuarios', () => {
         expect(response.status()).toBe(400);
 
         const responseBody = await response.json();
-
-        console.log('Response body:', responseBody); // Adicione esta linha para depuração
-        expect(responseBody.password).toBe('password não pode ficar em branco');
+        // console.log('Response body:', responseBody); // Adicione esta linha para depuração
+        expect(responseBody).toHaveProperty('password', 'password não pode ficar em branco')
     });
 
     test('password field is required', async ({ request }) => {
@@ -288,9 +283,8 @@ test.describe('POST /usuarios', () => {
         expect(response.status()).toBe(400);
 
         const responseBody = await response.json();
-
-        console.log('Response body:', responseBody); // Adicione esta linha para depuração
-        expect(responseBody.password).toBe('password é obrigatório');
+        // console.log('Response body:', responseBody); // Adicione esta linha para depuração
+        expect(responseBody).toHaveProperty('password', 'password é obrigatório');
     });
 
     test('administrador field should be "true" or "false"', async ({ request }) => {
@@ -313,9 +307,8 @@ test.describe('POST /usuarios', () => {
         expect(response.status()).toBe(400);
 
         const responseBody = await response.json();
-
-        console.log('Response body:', responseBody); // Adicione esta linha para depuração
-        expect(responseBody.administrador).toBe("administrador deve ser 'true' ou 'false'");
+        // console.log('Response body:', responseBody); // Adicione esta linha para depuração
+        expect(responseBody).toHaveProperty('administrador', "administrador deve ser 'true' ou 'false'");
     });
 
     test('administrador field is required', async ({ request }) => {
@@ -337,9 +330,8 @@ test.describe('POST /usuarios', () => {
         expect(response.status()).toBe(400);
 
         const responseBody = await response.json();
-
-        console.log('Response body:', responseBody); // Adicione esta linha para depuração
-        expect(responseBody.administrador).toBe("administrador é obrigatório");
+        // console.log('Response body:', responseBody); // Adicione esta linha para depuração
+        expect(responseBody).toHaveProperty('administrador', 'administrador é obrigatório');
     });
 
     test('it should return 405 for invalid endpoint', async ({ request }) => {
