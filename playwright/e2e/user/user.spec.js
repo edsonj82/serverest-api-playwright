@@ -503,7 +503,7 @@ test.describe('GET /usuarios/{id}', () => {
         expect(response.status()).toBe(400);
 
         const responseBody = await response.json();
-        expect(responseBody.id).toBe('id deve ter exatamente 16 caracteres alfanuméricos');
+        expect(responseBody).toHaveProperty('id', 'id deve ter exatamente 16 caracteres alfanuméricos')
     });
 
     test('it should return 400 when ID is empty', async ({ request }) => {
@@ -516,7 +516,7 @@ test.describe('GET /usuarios/{id}', () => {
         expect(response.status()).toBe(400);
 
         const responseBody = await response.json();
-        expect(responseBody.id).toBe('id não pode ficar em branco');
+        expect(responseBody).toHaveProperty('id', 'id não pode ficar em branco')
     });
 
     test('it should return 400 when ID is not provided', async ({ request }) => {
@@ -559,7 +559,7 @@ test.describe('GET /usuarios/{id}', () => {
 
         expect(response.status()).toBe(400);
         const responseBody = await response.json();
-        expect(responseBody.id).toBe('id deve ter exatamente 16 caracteres alfanuméricos');
+        expect(responseBody).toHaveProperty('id', 'id deve ter exatamente 16 caracteres alfanuméricos')
     });
 
     test('it should return 400 when ID contains spaces', async ({ request }) => {
@@ -567,7 +567,7 @@ test.describe('GET /usuarios/{id}', () => {
         const response = await request.get(`https://serverest.dev/usuarios/${spaceId}`);
         expect(response.status()).toBe(400);
         const responseBody = await response.json();
-        expect(responseBody.id).toBe('id deve ter exatamente 16 caracteres alfanuméricos');
+        expect(responseBody).toHaveProperty('id', 'id deve ter exatamente 16 caracteres alfanuméricos')
     });
 
     test('it should return 400 when ID contains non-alphanumeric characters', async ({ request }) => {
@@ -575,7 +575,7 @@ test.describe('GET /usuarios/{id}', () => {
         const response = await request.get(`https://serverest.dev/usuarios/${nonAlphanumericId}`);
         expect(response.status()).toBe(400);
         const responseBody = await response.json();
-        expect(responseBody.id).toBe('id deve ter exatamente 16 caracteres alfanuméricos');
+        expect(responseBody).toHaveProperty('id', 'id deve ter exatamente 16 caracteres alfanuméricos')
     });
 
     test('it should return 400 when ID is null', async ({ request }) => {
@@ -583,7 +583,7 @@ test.describe('GET /usuarios/{id}', () => {
         const response = await request.get(`https://serverest.dev/usuarios/${nullId}`);
         expect(response.status()).toBe(400);
         const responseBody = await response.json();
-        expect(responseBody.id).toBe('id deve ter exatamente 16 caracteres alfanuméricos');
+        expect(responseBody).toHaveProperty('id', 'id deve ter exatamente 16 caracteres alfanuméricos')
     });
 
     test('it should return 400 when ID is undefined', async ({ request }) => {
@@ -591,7 +591,7 @@ test.describe('GET /usuarios/{id}', () => {
         const response = await request.get(`https://serverest.dev/usuarios/${undefinedId}`);
         expect(response.status()).toBe(400);
         const responseBody = await response.json();
-        expect(responseBody.id).toBe('id deve ter exatamente 16 caracteres alfanuméricos');
+        expect(responseBody).toHaveProperty('id', 'id deve ter exatamente 16 caracteres alfanuméricos')
     });
 
     test('it should return 400 when ID is a boolean', async ({ request }) => {
@@ -599,7 +599,7 @@ test.describe('GET /usuarios/{id}', () => {
         const response = await request.get(`https://serverest.dev/usuarios/${booleanId}`);
         expect(response.status()).toBe(400);
         const responseBody = await response.json();
-        expect(responseBody.id).toBe('id deve ter exatamente 16 caracteres alfanuméricos');
+        expect(responseBody).toHaveProperty('id', 'id deve ter exatamente 16 caracteres alfanuméricos')
     });
 
     test('it should return 400 when ID is an array', async ({ request }) => {
@@ -610,8 +610,7 @@ test.describe('GET /usuarios/{id}', () => {
 
         // Marca o teste como "fixme" apontando o ID do bug/card
         test.fixme(true, 'BUG: API returning 400 with non-array user ID');
-
-        expect(responseBody.id).toBe('id deve ter exatamente 16 caracteres alfanuméricos');
+        expect(responseBody).toHaveProperty('id', 'id deve ter exatamente 16 caracteres alfanuméricos')
     });
 });
 
@@ -695,7 +694,7 @@ test.describe('PUT /usuarios/{id}', () => {
         expect(createResponseBody).toHaveProperty('message', 'Cadastro realizado com sucesso');
         expect(createResponseBody).toHaveProperty('_id');
 
-        console.log('Create response body:', createResponseBody); // Adicione esta linha para depuração
+        // console.log('Create response body:', createResponseBody); // Adicione esta linha para depuração
     });
 
     test('it should not create a duplicate user', async ({ request }) => {
