@@ -137,7 +137,7 @@ test.describe('POST /carrinhos', () => {
 
         const responseData = await response.json();
         expect(responseData).toHaveProperty('message');
-        expect(responseData.message).toBe('Não é permitido possuir produto duplicado');
+        expect(responseData).toHaveProperty('message', 'Não é permitido possuir produto duplicado')
     });
 
     test('it should validate the quantity of products in the shopping cart', async ({ request }) => {
@@ -158,10 +158,8 @@ test.describe('POST /carrinhos', () => {
         expect(response.status()).toBe(400);
 
         const responseData = await response.json();
-        expect(responseData).toHaveProperty('produtos');
-
-        expect(responseData.produtos).toBe('produtos não contém 1 valor obrigatório');
-        console.log('Response data:', responseData);
+        expect(responseData).toHaveProperty('produtos', 'produtos não contém 1 valor obrigatório')
+        // console.log('Response data:', responseData);
     });
 
     test('it should return an error when creating more than one shopping cart for the same user', async ({ request }) => {
@@ -199,8 +197,7 @@ test.describe('POST /carrinhos', () => {
         expect(secondCartResponse.status()).toBe(400);
 
         const responseData = await secondCartResponse.json();
-        expect(responseData).toHaveProperty('message');
-        expect(responseData.message).toBe('Não é permitido ter mais de 1 carrinho');
+        expect(responseData).toHaveProperty('message', 'Não é permitido ter mais de 1 carrinho')
     });
 
     test('it should return an error when creating a shopping cart with an invalid product ID', async ({ request }) => {
@@ -221,8 +218,7 @@ test.describe('POST /carrinhos', () => {
         expect(response.status()).toBe(400);
 
         const responseData = await response.json();
-        expect(responseData).toHaveProperty('message');
-        expect(responseData.message).toBe('Produto não encontrado');
+        expect(responseData).toHaveProperty('message', 'Produto não encontrado')
     })
 
     test('it should return an error when a shopping cart can not have suficient quantity of products', async ({ request }) => {
@@ -243,8 +239,7 @@ test.describe('POST /carrinhos', () => {
         expect(response.status()).toBe(400);
 
         const responseData = await response.json();
-        expect(responseData).toHaveProperty('message');
-        expect(responseData.message).toBe('Produto não possui quantidade suficiente');
+        expect(responseData).toHaveProperty('message', 'Produto não possui quantidade suficiente')
     });
 
     test('it should return an error when creating a shopping cart without authorization', async ({ request }) => {
@@ -261,9 +256,8 @@ test.describe('POST /carrinhos', () => {
         expect(response.ok()).toBeFalsy();
         expect(response.status()).toBe(401);
 
-        console.log('Response body:', await response.json());
-        // expect(responseData).toHaveProperty('message');
-        expect(response.message).toBe('Token de acesso ausente, inválido, expirado ou usuário do token não existe mais');
+        const responseData = await response.json();
+        expect(responseData).toHaveProperty('message', 'Token de acesso ausente, inválido, expirado ou usuário do token não existe mais')
     });
 
     test('it should return an error when creating a shopping cart with an invalid authorization token', async ({ request }) => {
@@ -284,8 +278,7 @@ test.describe('POST /carrinhos', () => {
         expect(response.status()).toBe(401);
 
         const responseData = await response.json();
-        // expect(responseData).toHaveProperty('message');
-        expect(responseData.message).toBe('Token de acesso ausente, inválido, expirado ou usuário do token não existe mais');
+        expect(responseData).toHaveProperty('message', 'Token de acesso ausente, inválido, expirado ou usuário do token não existe mais');
     });
 
     test('it should return an error when creating a shopping cart with an expired authorization token', async ({ request }) => {
@@ -309,8 +302,7 @@ test.describe('POST /carrinhos', () => {
         expect(response.status()).toBe(401);
 
         const responseData = await response.json();
-        // expect(responseData).toHaveProperty('message');
-        expect(responseData.message).toBe('Token de acesso ausente, inválido, expirado ou usuário do token não existe mais');
+        expect(responseData).toHaveProperty('message', 'Token de acesso ausente, inválido, expirado ou usuário do token não existe mais');
     });
 
     test('it should return an error when creating a shopping cart with an empty product list', async ({ request }) => {
