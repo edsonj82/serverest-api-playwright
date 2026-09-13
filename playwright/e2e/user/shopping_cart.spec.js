@@ -321,7 +321,7 @@ test.describe('POST /carrinhos', () => {
 
         const responseData = await response.json();
         // expect(responseData['produtos[0].idProduto']).toBe('produtos[0].idProduto é obrigatório');
-        expect(responseData.produtos).toBe('produtos não contém 1 valor obrigatório');
+        expect(responseData).toHaveProperty('produtos', 'produtos não contém 1 valor obrigatório');
     });
 
     test('it should return an error when creating a shopping cart with a missing product ID', async ({ request }) => {
