@@ -172,10 +172,8 @@ test.describe('POST /produtos', () => {
         expect(response.status()).toBe(400);
 
         const responseData = await response.json();
-
         // console.log('Response Data:', responseData); // Log para depuração
-        expect(responseData).toHaveProperty('nome'); // Verifica se a resposta contém a propriedade 'nome'
-        expect(responseData.nome).toBe('nome é obrigatório');
+        expect(responseData).toHaveProperty('nome', 'nome é obrigatório'); // Verifica se a resposta contém a propriedade 'nome'
     });
 
     test('it should return an error when creating a product with empty required nome field', async ({ request }) => {
@@ -197,8 +195,7 @@ test.describe('POST /produtos', () => {
         expect(response.status()).toBe(400);
 
         const responseData = await response.json();
-        expect(responseData).toHaveProperty('nome'); // Verifica se a resposta contém a propriedade 'nome'
-        expect(responseData.nome).toBe('nome não pode ficar em branco');
+        expect(responseData).toHaveProperty('nome', 'nome não pode ficar em branco'); // Verifica se a resposta contém a propriedade 'nome'
     });
 
     test('it should return an error when creating a product with missing required preco field', async ({ request }) => {
@@ -222,9 +219,7 @@ test.describe('POST /produtos', () => {
         const responseData = await response.json();
 
         console.log('Response Data:', responseData); // Log para depuração
-        expect(responseData).toHaveProperty('preco'); // Verifica se a resposta contém a propriedade 'preco'
-        expect(responseData.preco).toBe('preco é obrigatório');
-
+        expect(responseData).toHaveProperty('preco', 'preco é obrigatório'); // Verifica se a resposta contém a propriedade 'preco'
     });
 
     test('it should return an error when creating a product with empty required preco field', async ({ request }) => {
@@ -246,8 +241,7 @@ test.describe('POST /produtos', () => {
         expect(response.status()).toBe(400);
 
         const responseData = await response.json();
-        expect(responseData).toHaveProperty('preco'); // Verifica se a resposta contém a propriedade 'preco'
-        expect(responseData.preco).toBe('preco deve ser um número');
+        expect(responseData).toHaveProperty('preco', 'preco deve ser um número'); // Verifica se a resposta contém a propriedade 'preco'
     });
 
     test('it should return and error when creating a product with invalid preco field (string instead of number)', async ({ request }) => {
@@ -270,8 +264,7 @@ test.describe('POST /produtos', () => {
         expect(response.status()).toBe(400);
 
         const responseData = await response.json();
-        expect(responseData).toHaveProperty('preco'); // Verifica se a resposta contém a propriedade 'preco'
-        expect(responseData.preco).toBe('preco deve ser um número');
+        expect(responseData).toHaveProperty('preco', 'preco deve ser um número'); // Verifica se a resposta contém a propriedade 'preco'
     });
 
     test('it should return an error when creating a product with missing required descricao field', async ({ request }) => {
@@ -292,10 +285,9 @@ test.describe('POST /produtos', () => {
         expect(response.status()).toBe(400);
 
         const responseData = await response.json();
-
         // console.log('Response Data:', responseData); // Log para depuração
-        expect(responseData).toHaveProperty('descricao'); // Verifica se a resposta contém a propriedade 'descricao'
-        expect(responseData.descricao).toBe('descricao é obrigatório');
+        expect(responseData).toHaveProperty('descricao', 'descricao é obrigatório'); // Verifica se a resposta contém a propriedade 'descricao'
+
     });
 
     test('it should return an error when creating a product with empty required descricao field', async ({ request }) => {
@@ -312,11 +304,11 @@ test.describe('POST /produtos', () => {
                 'authorization': authorization
             }
         });
+
         expect(response.status()).toBe(400);
 
         const responseData = await response.json();
-        expect(responseData).toHaveProperty('descricao'); // Verifica se a resposta contém a propriedade 'descricao'
-        expect(responseData.descricao).toBe('descricao não pode ficar em branco');
+        expect(responseData).toHaveProperty('descricao', 'descricao não pode ficar em branco'); // Verifica se a resposta contém a propriedade 'descricao'
     });
 
     test('it should return an error when creating a product with missing required quantidade field', async ({ request }) => {
@@ -336,8 +328,7 @@ test.describe('POST /produtos', () => {
         expect(response.status()).toBe(400);
 
         const responseData = await response.json();
-        expect(responseData).toHaveProperty('quantidade'); // Verifica se a resposta contém a propriedade 'quantidade'
-        expect(responseData.quantidade).toBe('quantidade é obrigatório');
+        expect(responseData).toHaveProperty('quantidade', 'quantidade é obrigatório'); // Verifica se a resposta contém a propriedade 'quantidade'
     });
 
     test('it should return an error when creating a product with empty required quantidade field', async ({ request }) => {
@@ -357,8 +348,7 @@ test.describe('POST /produtos', () => {
         expect(response.status()).toBe(400);
 
         const responseData = await response.json();
-        expect(responseData).toHaveProperty('quantidade'); // Verifica se a resposta contém a propriedade 'quantidade'
-        expect(responseData.quantidade).toBe('quantidade deve ser um número');
+        expect(responseData).toHaveProperty('quantidade', 'quantidade deve ser um número'); // Verifica se a resposta contém a propriedade 'quantidade'
     });
 
     test('it should return an error when creating a product with invalid quantidade field (string instead of number)', async ({ request }) => {
@@ -376,11 +366,11 @@ test.describe('POST /produtos', () => {
                 'authorization': authorization
             }
         });
+
         expect(response.status()).toBe(400);
 
         const responseData = await response.json();
-        expect(responseData).toHaveProperty('quantidade'); // Verifica se a resposta contém a propriedade 'quantidade'
-        expect(responseData.quantidade).toBe('quantidade deve ser um número');
+        expect(responseData).toHaveProperty('quantidade', 'quantidade deve ser um número'); // Verifica se a resposta contém a propriedade 'quantidade'
     });
 
     test('it should return an error when creating a product with missing required administrador field', async ({ request }) => {
@@ -404,8 +394,7 @@ test.describe('POST /produtos', () => {
         expect(response.status()).toBe(400);
 
         const responseData = await response.json();
-        expect(responseData).toHaveProperty('administrador'); // Verifica se a resposta contém a propriedade 'administrador'
-        expect(responseData.administrador).toBe('administrador é obrigatório');
+        expect(responseData).toHaveProperty('administrador', 'administrador é obrigatório'); // Verifica se a resposta contém a propriedade 'administrador'
     });
 
     test('it should return an error when creating a product with invalid administrador field (not "true" or "false")', async ({ request }) => {
@@ -427,8 +416,7 @@ test.describe('POST /produtos', () => {
         expect(response.status()).toBe(400);
 
         const responseData = await response.json();
-        expect(responseData).toHaveProperty('administrador'); // Verifica se a resposta contém a propriedade 'administrador'
-        expect(responseData.administrador).toBe('administrador não é permitido');
+        expect(responseData).toHaveProperty('administrador', 'administrador não é permitido'); // Verifica se a resposta contém a propriedade 'administrador'
     });
 
     test('it should return an error when creating a product with empty required administrador field', async ({ request }) => {
@@ -449,7 +437,7 @@ test.describe('POST /produtos', () => {
         expect(response.status()).toBe(400);
         const responseData = await response.json();
         expect(responseData).toHaveProperty('administrador'); // Verifica se a resposta contém a propriedade 'administrador'
-        expect(responseData.administrador).toBe('administrador não é permitido');
+        expect(responseData).toHaveProperty('administrador', 'administrador não é permitido'); // Verifica se a resposta contém a propriedade 'administrador'
     });
 
     test('it should return an error when creating a product with all missing required fields', async ({ request }) => {
@@ -530,7 +518,7 @@ test.describe('POST /produtos', () => {
         expect(response.status()).toBe(401);
 
         const responseData = await response.json();
-        console.log('Response Data:', responseData); // Log para depuração
+        // console.log('Response Data:', responseData); // Log para depuração
         expect(responseData).toHaveProperty('message', 'Token de acesso ausente, inválido, expirado ou usuário do token não existe mais');
     });
 
@@ -554,7 +542,7 @@ test.describe('POST /produtos', () => {
         expect(response.status()).toBe(401);
 
         const responseData = await response.json();
-        console.log('Response Data:', responseData); // Log para depuração
+        // console.log('Response Data:', responseData); // Log para depuração
         expect(responseData).toHaveProperty('message', 'Token de acesso ausente, inválido, expirado ou usuário do token não existe mais');
     });
 
@@ -577,7 +565,7 @@ test.describe('POST /produtos', () => {
         expect(response.status()).toBe(401);
 
         const responseData = await response.json();
-        console.log('Response Data:', responseData); // Log para depuração
+        // console.log('Response Data:', responseData); // Log para depuração
         expect(responseData).toHaveProperty('message', 'Token de acesso ausente, inválido, expirado ou usuário do token não existe mais');
     });
 });
