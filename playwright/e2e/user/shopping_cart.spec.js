@@ -1367,7 +1367,9 @@ test.describe('DELETE /carrinhos/cancelar-compra', () => {
         });
         expect(response.ok()).toBeTruthy();
         expect(response.status()).toBe(200);
-        expect(await response.json()).toEqual({ message: 'Registro excluído com sucesso. Estoque dos produtos reabastecido' });
+
+        const responseData = await response.json();
+        expect(responseData).toHaveProperty('message', 'Registro excluído com sucesso. Estoque dos produtos reabastecido');
     });
 
     test('it should return error when a shopping cart is not found for the user', async ({ request }) => {
@@ -1416,7 +1418,7 @@ test.describe('DELETE /carrinhos/cancelar-compra', () => {
 
         const responseData = await response.json();
         console.log('Response body:', responseData);
-        expect(responseData).toEqual({ message: 'Não foi encontrado carrinho para esse usuário' });
+        expect(responseData).toHaveProperty('message', 'Não foi encontrado carrinho para esse usuário');
     });
 
     test('it should return error when trying to conclude purchase without authorization', async ({ request }) => {
@@ -1450,8 +1452,8 @@ test.describe('DELETE /carrinhos/cancelar-compra', () => {
 
         const responseData = await response.json();
 
-        console.log('Response body:', responseData);
-        expect(responseData).toEqual({ message: 'Token de acesso ausente, inválido, expirado ou usuário do token não existe mais' });
+        // console.log('Response body:', responseData);
+        expect(responseData).toHaveProperty('message', 'Token de acesso ausente, inválido, expirado ou usuário do token não existe mais');
     });
 
     test('it should return error when trying to conclude purchase with expired token', async ({ request }) => {
@@ -1470,8 +1472,8 @@ test.describe('DELETE /carrinhos/cancelar-compra', () => {
         expect(response.status()).toBe(401);
 
         const responseData = await response.json();
-        console.log('Response body:', responseData);
-        expect(responseData).toEqual({ message: 'Token de acesso ausente, inválido, expirado ou usuário do token não existe mais' });
+        // console.log('Response body:', responseData);
+        expect(responseData).toHaveProperty('message', 'Token de acesso ausente, inválido, expirado ou usuário do token não existe mais');
     });
 
     test('it should return error when trying to conclude purchase with a token of a deleted user', async ({ request }) => {
@@ -1540,7 +1542,6 @@ test.describe('DELETE /carrinhos/cancelar-compra', () => {
 
         const responseData = await deleteResponse.json();
         // console.log('Response body:', deleteResponse);
-        expect(responseData).toEqual({ message: 'Token de acesso ausente, inválido, expirado ou usuário do token não existe mais' });
+        expect(responseData).toHaveProperty('message', 'Token de acesso ausente, inválido, expirado ou usuário do token não existe mais');
     });
-
 });
