@@ -43,8 +43,8 @@ test.describe('POST /login', () => {
         expect(loginData).toHaveProperty('authorization');
         authorization = loginData.authorization;
         expect(authorization).toBeTruthy();
-        expect(loginData).toHaveProperty('message');
-        expect(loginData.message).toBe('Login realizado com sucesso');
+
+        expect(loginData).toHaveProperty('message', 'Login realizado com sucesso');
     });
 
     test('it should fail to log in with invalid credentials', async ({ request }) => {
@@ -62,9 +62,7 @@ test.describe('POST /login', () => {
         expect(loginResponse.status()).toBe(401);
 
         const loginData = await loginResponse.json();
-
-        expect(loginData).toHaveProperty('message');
-        expect(loginData.message).toBe('Email e/ou senha inválidos');
+        expect(loginData).toHaveProperty('message', 'Email e/ou senha inválidos');
     });
 
     test('it should fail to log in with empty email', async ({ request }) => {
@@ -79,9 +77,7 @@ test.describe('POST /login', () => {
         expect(loginResponse.status()).toBe(400);
 
         const loginData = await loginResponse.json();
-
-        expect(loginData).toHaveProperty('email');
-        expect(loginData.email).toBe('email não pode ficar em branco');
+        expect(loginData).toHaveProperty('email', 'email não pode ficar em branco');
     });
 
     test('it should fail to log in with empty password', async ({ request }) => {
@@ -96,9 +92,7 @@ test.describe('POST /login', () => {
         expect(loginResponse.status()).toBe(400);
 
         const loginData = await loginResponse.json();
-
-        expect(loginData).toHaveProperty('password');
-        expect(loginData.password).toBe('password não pode ficar em branco');
+        expect(loginData).toHaveProperty('password', 'password não pode ficar em branco');
     });
 
     test('it should fail to log in with empty email and password', async ({ request }) => {
@@ -113,11 +107,8 @@ test.describe('POST /login', () => {
         expect(loginResponse.status()).toBe(400);
 
         const loginData = await loginResponse.json();
-
-        expect(loginData).toHaveProperty('email');
-        expect(loginData.email).toBe('email não pode ficar em branco');
-        expect(loginData).toHaveProperty('password');
-        expect(loginData.password).toBe('password não pode ficar em branco');
+        expect(loginData).toHaveProperty('email', 'email não pode ficar em branco');
+        expect(loginData).toHaveProperty('password', 'password não pode ficar em branco');
     });
 
     test('it should log in successfully with valid credentials and then log out', async ({ request }) => {
@@ -159,8 +150,8 @@ test.describe('POST /login', () => {
         expect(loginData).toHaveProperty('authorization');
         authorization = loginData.authorization;
         expect(authorization).toBeTruthy();
-        expect(loginData).toHaveProperty('message');
-        expect(loginData.message).toBe('Login realizado com sucesso');
+
+        expect(loginData).toHaveProperty('message', 'Login realizado com sucesso');
 
         // Now, let's log out
         const logoutResponse = await request.post('https://serverest.dev/logout', {
@@ -176,9 +167,7 @@ test.describe('POST /login', () => {
         expect(logoutResponse.ok()).toBeTruthy();
 
         const logoutData = await logoutResponse.json();
-
-        expect(logoutData).toHaveProperty('message');
-        expect(logoutData.message).toBe('Logout realizado com sucesso');
+        expect(logoutData).toHaveProperty('message', 'Login realizado com sucesso');
     });
 
     test('it should fail to log in with a deleted user', async ({ request }) => {
@@ -224,9 +213,8 @@ test.describe('POST /login', () => {
         expect(loginResponse.status()).toBe(401);
 
         const loginData = await loginResponse.json();
+        expect(loginData).toHaveProperty('message','Email e/ou senha inválidos');
 
-        expect(loginData).toHaveProperty('message');
-        expect(loginData.message).toBe('Email e/ou senha inválidos');
     });
 
     test('it should fail to log in with a user that does not exist', async ({ request }) => {
@@ -244,9 +232,8 @@ test.describe('POST /login', () => {
         expect(loginResponse.status()).toBe(401);
 
         const loginData = await loginResponse.json();
+        expect(loginData).toHaveProperty('message', 'Email e/ou senha inválidos');
 
-        expect(loginData).toHaveProperty('message');
-        expect(loginData.message).toBe('Email e/ou senha inválidos');
     });
 
     test('it should fail to log in with a user that has been deactivated', async ({ request }) => {
