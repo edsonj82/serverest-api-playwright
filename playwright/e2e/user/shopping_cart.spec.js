@@ -2,25 +2,13 @@ import { test, expect } from '@playwright/test'
 import { faker } from '@faker-js/faker'
 
 import { getUser } from '../../support/factories/user.js';
+import { getProduct } from '../../support/factories/product.js';
 
 test.describe('POST /carrinhos', () => {
     let authorization, productId;
 
     test.beforeAll(async ({ request }) => {
         // // 1. Dados do usuário Administrador
-        // const firstName = faker.person.firstName();
-        // const lastName = faker.person.lastName();
-        // const fullName = `${firstName} ${lastName}`;
-        // const email = faker.internet.email({ firstName, lastName }).toLowerCase();
-        // const password = faker.internet.password();
-
-        // const user = {
-        //     nome: fullName,
-        //     email: email,
-        //     password: password,
-        //     administrador: 'true' // Obrigatório ser string 'true' no ServeRest
-        // };
-
         const user = getUser();
 
         // 2. Criar usuário admin
@@ -42,12 +30,7 @@ test.describe('POST /carrinhos', () => {
         authorization = loginData.authorization; // Armazena "Bearer <token>"
 
         // 4. Criar um produto para adicionar ao carrinho
-        const product = {
-            nome: faker.commerce.productName(),
-            preco: faker.number.int({ min: 10, max: 1000 }),
-            descricao: faker.commerce.productDescription(),
-            quantidade: faker.number.int({ min: 1, max: 100 })
-        };
+        const product = getProduct();
 
         const productResponse = await request.post('https://serverest.dev/produtos', {
             data: product,
