@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test'
 import { faker } from '@faker-js/faker'
 
-import { getUser } from '../../support/factories/user.js';
+import { getUser, getUserAdmin } from '../../support/factories/user.js';
 import { getProduct } from '../../support/factories/product.js';
 
 test.describe('POST /carrinhos', () => {
@@ -9,7 +9,7 @@ test.describe('POST /carrinhos', () => {
 
     test.beforeAll(async ({ request }) => {
         // // 1. Dados do usuário Administrador
-        const user = getUser();
+        const user = getUserAdmin();
 
         // 2. Criar usuário admin
         const response = await request.post('https://serverest.dev/usuarios', {
@@ -425,8 +425,7 @@ test.describe('GET /carrinhos', () => {
     let authorization, productId;
 
     test.beforeAll(async ({ request }) => {
-
-        const user = getUser();
+        const user = getUserAdmin();
 
         // 2. Criar usuário admin
         const response = await request.post('https://serverest.dev/usuarios', {
@@ -837,7 +836,7 @@ test.describe('GET /carrinhos/:id', () => {
 
     test.beforeAll(async ({ request }) => {
         // 1. Dados do usuário Administrador
-        const user = getUser();
+        const user = getUserAdmin();
 
         // 2. Criar usuário admin
         const response = await request.post('https://serverest.dev/usuarios', {
@@ -978,7 +977,7 @@ test.describe('DELETE /carrinhos/concluir-compra', () => {
 
     test.beforeAll(async ({ request }) => {
         // 1. Dados do usuário Administrador
-        const user = getUser();
+        const user = getUserAdmin();
 
         // 2. Criar usuário admin
         const response = await request.post('https://serverest.dev/usuarios', {
@@ -1049,19 +1048,7 @@ test.describe('DELETE /carrinhos/concluir-compra', () => {
 
     test('it should return error when a shopping cart is not found for the user', async ({ request }) => {
         // 1. Dados do usuário Administrador
-        const firstName = faker.person.firstName();
-        const lastName = faker.person.lastName();
-        const fullName = `${firstName} ${lastName}`;
-        const email = faker.internet.email({ firstName, lastName }).toLowerCase();
-        const password = faker.internet.password();
-
-        const user = {
-            nome: fullName,
-            email: email,
-            password: password,
-            administrador: 'true' // Obrigatório ser string 'true' no ServeRest
-        };
-
+        const user = getUserAdmin();
         // 2. Criar usuário admin
         const userResponse = await request.post('https://serverest.dev/usuarios', {
             data: user
@@ -1071,8 +1058,8 @@ test.describe('DELETE /carrinhos/concluir-compra', () => {
         // 3. Fazer login para capturar o Token
         const loginResponse = await request.post('https://serverest.dev/login', {
             data: {
-                email: email,
-                password: password
+                email: user.email,
+                password: user.password
             }
         });
 
@@ -1132,7 +1119,6 @@ test.describe('DELETE /carrinhos/concluir-compra', () => {
     });
 
     test('it should return error when trying to conclude purchase with expired token', async ({ request }) => {
-
         // 1. Simular expiração do token (isso depende de como o backend lida com tokens)
         // Aqui, apenas para fins de teste, vamos usar um token "expirado"
         const expired_token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImxlbGFuZC5vY29ubmVyQGdtYWlsLmNvbSIsInBhc3N3b3JkIjoic0owUUp5dkxQWkRSZng4IiwiaWF0IjoxNzg1Nzk2ODgxLCJleHAiOjE3ODU3OTc0ODF9.K-57b8Vd3IbCWZUh8qSpb63YqCp1UchJO2sEXyZp7h4';
@@ -1153,19 +1139,7 @@ test.describe('DELETE /carrinhos/concluir-compra', () => {
 
     test('it should return error when trying to conclude purchase with a token of a deleted user', async ({ request }) => {
         // 1. Dados do usuário Administrador
-        const firstName = faker.person.firstName();
-        const lastName = faker.person.lastName();
-        const fullName = `${firstName} ${lastName}`;
-        const email = faker.internet.email({ firstName, lastName }).toLowerCase();
-        const password = faker.internet.password();
-
-        const user = {
-            nome: fullName,
-            email: email,
-            password: password,
-            administrador: 'true'
-        };
-
+        const user = getUserAdmin();
         // 2. Criar usuário admin
         const response = await request.post('https://serverest.dev/usuarios', {
             data: user
@@ -1226,7 +1200,7 @@ test.describe('DELETE /carrinhos/cancelar-compra', () => {
 
     test.beforeAll(async ({ request }) => {
         // 1. Dados do usuário Administrador
-        const user = getUser();
+        const user = getUserAdmin();
 
         // 2. Criar usuário admin
         const response = await request.post('https://serverest.dev/usuarios', {
@@ -1366,7 +1340,6 @@ test.describe('DELETE /carrinhos/cancelar-compra', () => {
     });
 
     test('it should return error when trying to conclude purchase with expired token', async ({ request }) => {
-
         // 1. Simular expiração do token (isso depende de como o backend lida com tokens)
         // Aqui, apenas para fins de teste, vamos usar um token "expirado"
         const expired_token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImxlbGFuZC5vY29ubmVyQGdtYWlsLmNvbSIsInBhc3N3b3JkIjoic0owUUp5dkxQWkRSZng4IiwiaWF0IjoxNzg1Nzk2ODgxLCJleHAiOjE3ODU3OTc0ODF9.K-57b8Vd3IbCWZUh8qSpb63YqCp1UchJO2sEXyZp7h4';
