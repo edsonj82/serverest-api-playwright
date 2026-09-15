@@ -837,18 +837,7 @@ test.describe('GET /carrinhos/:id', () => {
 
     test.beforeAll(async ({ request }) => {
         // 1. Dados do usuário Administrador
-        const firstName = faker.person.firstName();
-        const lastName = faker.person.lastName();
-        const fullName = `${firstName} ${lastName}`;
-        const email = faker.internet.email({ firstName, lastName }).toLowerCase();
-        const password = faker.internet.password();
-
-        const user = {
-            nome: fullName,
-            email: email,
-            password: password,
-            administrador: 'true' // Obrigatório ser string 'true' no ServeRest
-        };
+        const user = getUser();
 
         // 2. Criar usuário admin
         const response = await request.post('https://serverest.dev/usuarios', {
@@ -859,8 +848,8 @@ test.describe('GET /carrinhos/:id', () => {
         // 3. Fazer login para capturar o Token
         const loginResponse = await request.post('https://serverest.dev/login', {
             data: {
-                email: email,
-                password: password
+                email: user.email,
+                password: user.password
             }
         });
         expect(loginResponse.ok()).toBeTruthy();
@@ -868,12 +857,7 @@ test.describe('GET /carrinhos/:id', () => {
         authorization = loginData.authorization;
 
         // 4. Criar um produto para adicionar ao carrinho
-        const product = {
-            nome: faker.commerce.productName(),
-            preco: faker.number.int({ min: 10, max: 1000 }),
-            descricao: faker.commerce.productDescription(),
-            quantidade: faker.number.int({ min: 1, max: 10 })
-        };
+        const product = getProduct();
 
         const productResponse = await request.post('https://serverest.dev/produtos', {
             data: product,
