@@ -1,24 +1,27 @@
 import { test, expect } from '@playwright/test'
 import { faker } from '@faker-js/faker'
-import { exitCode } from 'node:process';
+
+import { getUser } from '../../support/factories/user.js';
 
 test.describe('POST /carrinhos', () => {
     let authorization, productId;
 
     test.beforeAll(async ({ request }) => {
-        // 1. Dados do usuário Administrador
-        const firstName = faker.person.firstName();
-        const lastName = faker.person.lastName();
-        const fullName = `${firstName} ${lastName}`;
-        const email = faker.internet.email({ firstName, lastName }).toLowerCase();
-        const password = faker.internet.password();
+        // // 1. Dados do usuário Administrador
+        // const firstName = faker.person.firstName();
+        // const lastName = faker.person.lastName();
+        // const fullName = `${firstName} ${lastName}`;
+        // const email = faker.internet.email({ firstName, lastName }).toLowerCase();
+        // const password = faker.internet.password();
 
-        const user = {
-            nome: fullName,
-            email: email,
-            password: password,
-            administrador: 'true' // Obrigatório ser string 'true' no ServeRest
-        };
+        // const user = {
+        //     nome: fullName,
+        //     email: email,
+        //     password: password,
+        //     administrador: 'true' // Obrigatório ser string 'true' no ServeRest
+        // };
+
+        const user = getUser();
 
         // 2. Criar usuário admin
         const response = await request.post('https://serverest.dev/usuarios', {
@@ -29,8 +32,8 @@ test.describe('POST /carrinhos', () => {
         // 3. Fazer login para capturar o Token
         const loginResponse = await request.post('https://serverest.dev/login', {
             data: {
-                email: email,
-                password: password
+                email: user.email,
+                password: user.password
             }
         });
         expect(loginResponse.ok()).toBeTruthy();
