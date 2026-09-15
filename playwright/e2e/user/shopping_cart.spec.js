@@ -1226,18 +1226,7 @@ test.describe('DELETE /carrinhos/cancelar-compra', () => {
 
     test.beforeAll(async ({ request }) => {
         // 1. Dados do usuário Administrador
-        const firstName = faker.person.firstName();
-        const lastName = faker.person.lastName();
-        const fullName = `${firstName} ${lastName}`;
-        const email = faker.internet.email({ firstName, lastName }).toLowerCase();
-        const password = faker.internet.password();
-
-        const user = {
-            nome: fullName,
-            email: email,
-            password: password,
-            administrador: 'true' // Obrigatório ser string 'true' no ServeRest
-        };
+        const user = getUser();
 
         // 2. Criar usuário admin
         const response = await request.post('https://serverest.dev/usuarios', {
@@ -1248,8 +1237,8 @@ test.describe('DELETE /carrinhos/cancelar-compra', () => {
         // 3. Fazer login para capturar o Token
         const loginResponse = await request.post('https://serverest.dev/login', {
             data: {
-                email: email,
-                password: password
+                email: user.email,
+                password: user.password
             }
         });
         expect(loginResponse.ok()).toBeTruthy();
@@ -1257,12 +1246,7 @@ test.describe('DELETE /carrinhos/cancelar-compra', () => {
         authorization = loginData.authorization;
 
         // 4. Criar um produto para adicionar ao carrinho
-        const product = {
-            nome: faker.commerce.productName(),
-            preco: faker.number.int({ min: 10, max: 1000 }),
-            descricao: faker.commerce.productDescription(),
-            quantidade: faker.number.int({ min: 1, max: 10 })
-        };
+        const product = getProduct();
 
         const productResponse = await request.post('https://serverest.dev/produtos', {
             data: product,
@@ -1312,18 +1296,7 @@ test.describe('DELETE /carrinhos/cancelar-compra', () => {
 
     test('it should return error when a shopping cart is not found for the user', async ({ request }) => {
         // 1. Dados do usuário Administrador
-        const firstName = faker.person.firstName();
-        const lastName = faker.person.lastName();
-        const fullName = `${firstName} ${lastName}`;
-        const email = faker.internet.email({ firstName, lastName }).toLowerCase();
-        const password = faker.internet.password();
-
-        const user = {
-            nome: fullName,
-            email: email,
-            password: password,
-            administrador: 'true' // Obrigatório ser string 'true' no ServeRest
-        };
+        const user = getUser();
 
         // 2. Criar usuário admin
         const userResponse = await request.post('https://serverest.dev/usuarios', {
@@ -1334,8 +1307,8 @@ test.describe('DELETE /carrinhos/cancelar-compra', () => {
         // 3. Fazer login para capturar o Token
         const loginResponse = await request.post('https://serverest.dev/login', {
             data: {
-                email: email,
-                password: password
+                email: user.email,
+                password: user.password
             }
         });
 
@@ -1371,7 +1344,6 @@ test.describe('DELETE /carrinhos/cancelar-compra', () => {
         expect(response.status()).toBe(401);
 
         const responseData = await response.json();
-
         console.log('Response body:', responseData);
         expect(responseData).toEqual({ message: 'Token de acesso ausente, inválido, expirado ou usuário do token não existe mais' });
     });
@@ -1389,7 +1361,6 @@ test.describe('DELETE /carrinhos/cancelar-compra', () => {
         expect(response.status()).toBe(401);
 
         const responseData = await response.json();
-
         // console.log('Response body:', responseData);
         expect(responseData).toHaveProperty('message', 'Token de acesso ausente, inválido, expirado ou usuário do token não existe mais');
     });
@@ -1416,18 +1387,7 @@ test.describe('DELETE /carrinhos/cancelar-compra', () => {
 
     test('it should return error when trying to conclude purchase with a token of a deleted user', async ({ request }) => {
         // 1. Dados do usuário Administrador
-        const firstName = faker.person.firstName();
-        const lastName = faker.person.lastName();
-        const fullName = `${firstName} ${lastName}`;
-        const email = faker.internet.email({ firstName, lastName }).toLowerCase();
-        const password = faker.internet.password();
-
-        const user = {
-            nome: fullName,
-            email: email,
-            password: password,
-            administrador: 'true'
-        };
+        const user = getUser();
 
         // 2. Criar usuário admin
         const response = await request.post('https://serverest.dev/usuarios', {
@@ -1438,13 +1398,13 @@ test.describe('DELETE /carrinhos/cancelar-compra', () => {
 
         const createResponseBody = await response.json();
         const userId = createResponseBody._id;
-        console.log('userId:', userId);
+        // console.log('userId:', userId);
 
         // 3. Fazer login para capturar o Token
         const loginResponse = await request.post('https://serverest.dev/login', {
             data: {
-                email: email,
-                password: password
+                email: user.email,
+                password: user.password
             }
         });
 
