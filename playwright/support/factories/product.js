@@ -8,10 +8,6 @@ export const getProduct = () => {
     const quantity = faker.number.int({ min: 1, max: 100 });
 
     return {
-        // nome: faker.commerce.productName(),
-        // preco: faker.number.int({ min: 10, max: 1000 }),
-        // descricao: faker.commerce.productDescription(),
-        // quantidade: faker.number.int({ min: 1, max: 100 })
         nome: productName,
         preco: price,
         descricao: description,
