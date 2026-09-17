@@ -2,6 +2,9 @@
 import { test, expect } from '@playwright/test';
 import { faker } from '@faker-js/faker';
 
+import { getUser } from '../../support/factories/user.js';
+import { getProduct } from '../../support/factories/product.js';
+
 //User API tests
 test.describe('POST /usuarios', () => {
 
@@ -16,18 +19,7 @@ test.describe('POST /usuarios', () => {
 
     test('it should create a new user', async ({ request }) => {
 
-        //const fullName = faker.person.firstName() + ' ' + faker.person.lastName();
-        const firstName = faker.person.firstName();
-        const lastName = faker.person.lastName();
-        const fullName = `${firstName} ${lastName}`;
-
-        const user = {
-            nome: fullName,
-            //email: faker.internet.email({ firstName: fullName.split(' ')[0], lastName: fullName.split(' ')[1] }),
-            email: faker.internet.email({ firstName, lastName }).toLowerCase(),
-            password: 'admin1234',
-            administrador: 'false'
-        };
+        const user = getUser();
 
         const response = await request.post('https://serverest.dev/usuarios', {
             data: user
@@ -47,17 +39,7 @@ test.describe('POST /usuarios', () => {
 
     test('it should not create a duplicate user', async ({ request }) => {
 
-        const firstName = faker.person.firstName();
-        const lastName = faker.person.lastName();
-        const fullName = `${firstName} ${lastName}`;
-
-        const user = {
-            nome: fullName,
-            //email: faker.internet.email({ firstName: fullName.split(' ')[0], lastName: fullName.split(' ')[1] }),
-            email: faker.internet.email({ firstName, lastName }).toLowerCase(),
-            password: 'admin1234',
-            administrador: 'false'
-        };
+        const user = getUser();
 
         const response = await request.post('https://serverest.dev/usuarios', {
             data: user
@@ -77,10 +59,10 @@ test.describe('POST /usuarios', () => {
         // Tentamos criar um usuário com o mesmo email
         const duplicateResponse = await request.post('https://serverest.dev/usuarios', {
             data: {
-                nome: fullName,
+                nome: user.nome,
                 email: email,
-                password: 'admin1234',
-                administrador: 'false'
+                password: user.password,
+                administrador: user.administrador
             }
         });
 
@@ -92,16 +74,8 @@ test.describe('POST /usuarios', () => {
 
     test('name field should not be empty', async ({ request }) => {
 
-        const firstName = faker.person.firstName();
-        const lastName = faker.person.lastName();
-        // const fullName = `${firstName} ${lastName}`;
-
-        const user = {
-            nome: "",
-            email: faker.internet.email({ firstName, lastName }).toLowerCase(),
-            password: 'admin1234',
-            administrador: 'false'
-        };
+        const user = getUser();
+        user.nome = "";
 
         const response = await request.post('https://serverest.dev/usuarios', {
             data: user
@@ -116,15 +90,8 @@ test.describe('POST /usuarios', () => {
 
     test('name field is required', async ({ request }) => {
 
-        const firstName = faker.person.firstName();
-        const lastName = faker.person.lastName();
-        // const fullName = `${firstName} ${lastName}`;
-
-        const user = {
-            email: faker.internet.email({ firstName, lastName }).toLowerCase(),
-            password: 'admin1234',
-            administrador: 'false'
-        };
+        const user = getUser();
+        delete user.nome;
 
         const response = await request.post('https://serverest.dev/usuarios', {
             data: user
@@ -133,7 +100,7 @@ test.describe('POST /usuarios', () => {
         expect(response.status()).toBe(400);
 
         const responseBody = await response.json();
-        // console.log('Response body:', responseBody); // Adicione esta linha para depuração
+        console.log('Response body:', responseBody); // Adicione esta linha para depuração
         expect(responseBody).toHaveProperty('nome', 'nome é obrigatório');
     });
 
