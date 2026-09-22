@@ -20,6 +20,7 @@ test.describe('POST /usuarios', () => {
     test('it should create a new user', async ({ request }) => {
 
         const user = getUser();
+        user.administrador = 'false';
 
         const response = await request.post('https://serverest.dev/usuarios', {
             data: user
@@ -40,6 +41,7 @@ test.describe('POST /usuarios', () => {
     test('it should not create a duplicate user', async ({ request }) => {
 
         const user = getUser();
+        user.administrador = 'false';
 
         const response = await request.post('https://serverest.dev/usuarios', {
             data: user
@@ -91,6 +93,8 @@ test.describe('POST /usuarios', () => {
     test('name field is required', async ({ request }) => {
 
         const user = getUser();
+        user.administrador = 'false';
+
         delete user.nome;
 
         const response = await request.post('https://serverest.dev/usuarios', {
@@ -106,16 +110,9 @@ test.describe('POST /usuarios', () => {
 
     test('email field should not be empty', async ({ request }) => {
 
-        const firstName = faker.person.firstName();
-        const lastName = faker.person.lastName();
-        const fullName = `${firstName} ${lastName}`;
-
-        const user = {
-            nome: fullName,
-            email: "",
-            password: 'admin1234',
-            administrador: 'false'
-        };
+        const user = getUser();
+        user.administrador = 'false';
+        user.email = "";
 
         const response = await request.post('https://serverest.dev/usuarios', {
             data: user
@@ -130,16 +127,9 @@ test.describe('POST /usuarios', () => {
 
     test('email field should be valid', async ({ request }) => {
 
-        const firstName = faker.person.firstName();
-        const lastName = faker.person.lastName();
-        const fullName = `${firstName} ${lastName}`;
-
-        const user = {
-            nome: fullName,
-            email: "invalid-email",
-            password: 'admin1234',
-            administrador: 'false'
-        };
+        const user = getUser();
+        user.administrador = 'false';
+        user.email = "invalid-email";
 
         const response = await request.post('https://serverest.dev/usuarios', {
             data: user
@@ -153,17 +143,9 @@ test.describe('POST /usuarios', () => {
     });
 
     test('email field is required', async ({ request }) => {
-
-        const firstName = faker.person.firstName();
-        const lastName = faker.person.lastName();
-        const fullName = `${firstName} ${lastName}`;
-
-        const user = {
-            nome: fullName,
-            // email: "",
-            password: 'admin1234',
-            administrador: 'false'
-        };
+        const user = getUser();
+        user.administrador = 'false';
+        delete user.email;
 
         const response = await request.post('https://serverest.dev/usuarios', {
             data: user
@@ -178,15 +160,10 @@ test.describe('POST /usuarios', () => {
 
     invalidEmailScenarios.forEach(({ email, reason }) => {// Iteramos criando um teste para cada cenário
         test(`should reject invalid email: ${reason} ('${email}')`, async ({ request }) => {
-            const firstName = faker.person.firstName();
-            const lastName = faker.person.lastName();
 
-            const user = {
-                nome: `${firstName} ${lastName}`,
-                email: email,
-                password: 'admin1234',
-                administrador: 'false'
-            };
+            const user = getUser();
+            user.administrador = 'false';
+            user.email = email;
 
             const response = await request.post('https://serverest.dev/usuarios', {
                 data: user
@@ -208,16 +185,9 @@ test.describe('POST /usuarios', () => {
 
     test('password field should not be empty', async ({ request }) => {
 
-        const firstName = faker.person.firstName();
-        const lastName = faker.person.lastName();
-        const fullName = `${firstName} ${lastName}`;
-
-        const user = {
-            nome: fullName,
-            email: "",
-            password: "",
-            administrador: 'false'
-        };
+        const user = getUser();
+        user.administrador = 'false';
+        user.password = '';
 
         const response = await request.post('https://serverest.dev/usuarios', {
             data: user
@@ -232,16 +202,9 @@ test.describe('POST /usuarios', () => {
 
     test('password field is required', async ({ request }) => {
 
-        const firstName = faker.person.firstName();
-        const lastName = faker.person.lastName();
-        const fullName = `${firstName} ${lastName}`;
-
-        const user = {
-            nome: fullName,
-            email: faker.internet.email({ firstName, lastName }).toLowerCase(),
-            // password: 'admin1234',
-            administrador: 'false'
-        };
+        const user = getUser();
+        user.administrador = 'false';
+        delete user.password;
 
         const response = await request.post('https://serverest.dev/usuarios', {
             data: user
@@ -256,16 +219,8 @@ test.describe('POST /usuarios', () => {
 
     test('administrador field should be "true" or "false"', async ({ request }) => {
 
-        const firstName = faker.person.firstName();
-        const lastName = faker.person.lastName();
-        const fullName = `${firstName} ${lastName}`;
-
-        const user = {
-            nome: fullName,
-            email: faker.internet.email({ firstName, lastName }).toLowerCase(),
-            password: 'admin1234',
-            administrador: ''
-        };
+        const user = getUser();
+        user.administrador = '';
 
         const response = await request.post('https://serverest.dev/usuarios', {
             data: user
@@ -280,15 +235,9 @@ test.describe('POST /usuarios', () => {
 
     test('administrador field is required', async ({ request }) => {
 
-        const firstName = faker.person.firstName();
-        const lastName = faker.person.lastName();
-        const fullName = `${firstName} ${lastName}`;
+        const user = getUser();
+        delete user.administrador;
 
-        const user = {
-            nome: fullName,
-            email: faker.internet.email({ firstName, lastName }).toLowerCase(),
-            // administrador: 'true'
-        };
 
         const response = await request.post('https://serverest.dev/usuarios', {
             data: user
