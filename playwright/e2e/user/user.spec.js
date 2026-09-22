@@ -1,9 +1,7 @@
 // @ts-check
 import { test, expect } from '@playwright/test';
-import { faker } from '@faker-js/faker';
 
 import { getUser } from '../../support/factories/user.js';
-import { getProduct } from '../../support/factories/product.js';
 
 //User API tests
 test.describe('POST /usuarios', () => {
