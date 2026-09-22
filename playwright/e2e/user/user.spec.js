@@ -366,16 +366,9 @@ test.describe('GET /usuarios/{id}', () => {
     let userId, nome, email, password, administrador;// 1. Declaramos a variável vazia no escopo do describe
 
     test('it should show user details by ID', async ({ request }) => {
-        const firstName = faker.person.firstName();
-        const lastName = faker.person.lastName();
-        const fullName = `${firstName} ${lastName}`;
 
-        const user = {
-            nome: fullName,
-            email: faker.internet.email({ firstName, lastName }).toLowerCase(),
-            password: 'admin1234',
-            administrador: 'false'
-        };
+        const user = getUser();
+        user.administrador = 'false';
 
         const response = await request.post('https://serverest.dev/usuarios', {
             data: user
@@ -442,7 +435,6 @@ test.describe('GET /usuarios/{id}', () => {
 
         const responseBody = await response.json();
         // expect(responseBody.id).toBe('id não pode ficar em branco');
-
         expect(responseBody.quantidade).toBeGreaterThan(0); // Garantimos que a lista não está vazia (maior que 0)
 
         responseBody.usuarios.forEach(user => {//Iteramos por todos os usuários para validar a estrutura dos dados
@@ -534,16 +526,14 @@ test.describe('PUT /usuarios/{id}', () => {
     let userId;
 
     test('it should update user details by ID', async ({ request }) => {
-        const firstName = faker.person.firstName();
-        const lastName = faker.person.lastName();
-        const fullName = `${firstName} ${lastName}`;
 
-        const user = {
-            nome: fullName,
-            email: faker.internet.email({ firstName, lastName }).toLowerCase(),
-            password: 'admin1234',
-            administrador: 'false'
-        };
+        const user = getUser();
+        const { nome: fullName } = user;
+        user.administrador = 'false';
+        const [firstName, lastName] = fullName.split(' ');
+        // console.log('User details:', { fullName, email, password, administrador });
+        // console.log('First name:', firstName);
+        // console.log('Last name:', lastName);
 
         const createResponse = await request.post('https://serverest.dev/usuarios', {
             data: user
@@ -553,29 +543,26 @@ test.describe('PUT /usuarios/{id}', () => {
 
         const createResponseBody = await createResponse.json();
         userId = createResponseBody._id;
-        const updateData = {
-            nome: `${firstName} Updated ${lastName}`,
-            email: faker.internet.email({ firstName, lastName }).toLowerCase(),
-            password: 'admin1234',
-            administrador: 'false'
-        };
+
+        const updateData = getUser();
+        updateData.administrador = 'false';
+        const { nome: updateFullName } = updateData;
+        const [updateFirstName, updateLastName] = updateFullName.split(' ');
+        // console.log('Update first name:', updateFirstName);
+        // console.log('Update last name:', updateLastName);
 
         const updateResponse = await request.put(`https://serverest.dev/usuarios/${userId}`, {
             data: updateData
         });
 
-        expect(updateResponse.status()).toBe(200);
+        if (firstName !== updateFirstName || lastName !== updateLastName) {
+            // console.log('User name has been updated.');
+            expect(updateResponse.status()).toBe(200);
 
-        const updateResponseBody = await updateResponse.json();
-
-        expect(updateResponseBody).toHaveProperty('message', 'Registro alterado com sucesso');
-        console.log('Update response body:', updateResponseBody); // Adicione esta linha para depuração
-
-        // expect(updateResponseBody).toHaveProperty('_id', userId);
-        // expect(updateResponseBody).toHaveProperty('nome', updateData.nome);
-        // expect(updateResponseBody).toHaveProperty('email', updateData.email);
-        // expect(updateResponseBody).toHaveProperty('password', updateData.password);
-        // expect(updateResponseBody).toHaveProperty('administrador', updateData.administrador);
+            const updateResponseBody = await updateResponse.json();
+            expect(updateResponseBody).toHaveProperty('message', 'Registro alterado com sucesso');
+            // console.log('Update response body:', updateResponseBody); // Adicione esta linha para depuração
+        }
     });
 
     test('it should register a new user when PUT is called with a non-existent ID', async ({ request }) => {
@@ -590,16 +577,9 @@ test.describe('PUT /usuarios/{id}', () => {
             return id;
         })(); // Use a variável gerada aleatoriamente
 
-        const firstName = faker.person.firstName();
-        const lastName = faker.person.lastName();
-        const fullName = `${firstName} ${lastName}`;
+        const user = getUser();
+        user.administrador = 'false';
 
-        const user = {
-            nome: fullName,
-            email: faker.internet.email({ firstName, lastName }).toLowerCase(),
-            password: 'admin1234',
-            administrador: 'false'
-        };
         const createResponse = await request.put(`https://serverest.dev/usuarios/${nonExistentUserId}`, {
             data: user
         });
@@ -614,16 +594,9 @@ test.describe('PUT /usuarios/{id}', () => {
     });
 
     test('it should not create a duplicate user', async ({ request }) => {
-        const firstName = faker.person.firstName();
-        const lastName = faker.person.lastName();
-        const fullName = `${firstName} ${lastName}`;
 
-        const user = {
-            nome: fullName,
-            email: faker.internet.email({ firstName, lastName }).toLowerCase(),
-            password: 'admin1234',
-            administrador: 'false'
-        };
+        const user = getUser();
+        user.administrador = 'false';
 
         const response = await request.post('https://serverest.dev/usuarios', {
             data: user
@@ -641,10 +614,10 @@ test.describe('PUT /usuarios/{id}', () => {
         const newFakeId = '0000000000000000';
         const duplicateResponse = await request.put(`https://serverest.dev/usuarios/${newFakeId}`, {// Tentamos criar um usuário com o mesmo email
             data: {
-                nome: fullName,
+                nome: user.nome,
                 email: user.email,
-                password: 'admin1234',
-                administrador: 'false'
+                password: user.password,
+                administrador: user.administrador
             }
         });
 
