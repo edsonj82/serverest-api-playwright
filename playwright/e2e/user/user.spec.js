@@ -676,16 +676,10 @@ test.describe('PUT /usuarios/{id}', () => {
 test.describe('DELETE /usuarios/{id}', () => {
 
     test('it should delete user by ID', async ({ request }) => {
-        const firstName = faker.person.firstName();
-        const lastName = faker.person.lastName();
-        const fullName = `${firstName} ${lastName}`;
 
-        const user = {
-            nome: fullName,
-            email: faker.internet.email({ firstName, lastName }).toLowerCase(),
-            password: 'admin1234',
-            administrador: 'false'
-        };
+        const user = getUser();
+        user.administrador = 'false';
+
         const createResponse = await request.post('https://serverest.dev/usuarios', {
             data: user
         });
@@ -858,10 +852,7 @@ test.describe('DELETE /usuarios/{id}', () => {
         const responseBody = await response.json();
         expect(responseBody).toHaveProperty('message', 'Nenhum registro excluído');
     });
-
 });
-
-
 
 // Marca o teste como "fixme" apontando o ID do bug/card
 //   test.fixme(true, 'BUG-123: API returning 200 instead of 400 for non-existent product ID');
