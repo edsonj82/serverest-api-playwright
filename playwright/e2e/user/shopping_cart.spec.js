@@ -74,15 +74,45 @@ test.describe('POST /carrinhos', () => {
 
     // TODO: Adicionar teste para criar carrinho com múltiplos produtos
     test('it should create a shopping cart with multiple products successfully', async ({ request }) => {
+        // 1. Criar dois produtos válidos na API via fábrica/endpoint
+        const product1 = getProduct();
+        const product2 = getProduct();
+
+        const productResponse1 = await request.post('https://serverest.dev/produtos', {
+            data: product1,
+            headers: {
+                'Content-Type': 'application/json',
+                'authorization': authorization
+            }
+        });
+
+        const productResponse2 = await request.post('https://serverest.dev/produtos', {
+            data: product2,
+            headers: {
+                'Content-Type': 'application/json',
+                'authorization': authorization
+            }
+        });
+
+        const { _id: productId1 } = await productResponse1.json();
+        const { _id: productId2 } = await productResponse2.json();
+
+        // const productResponseData1 = await productResponse1.json();
+        // const productId1 = productResponseData1._id;
+
+        // const productResponseData2 = await productResponse2.json();
+        // const productId2 = productResponseData2._id;
+
+        // 2. Criar o carrinho utilizando os dois IDs válidos
         const response = await request.post('https://serverest.dev/carrinhos', {
             data: {
                 produtos: [
                     {
-                        idProduto: productId,
+                        idProduto: productId1,
                         quantidade: 1
                     },
                     {
-                        idProduto: "YaeJ455lz3k6kSIzA", // Gerando um ID de produto fictício para simular múltiplos produtos
+                        idProduto: productId2, // Gerando um ID de produto fictício para simular múltiplos produtos
                         quantidade: 3
                     }
                 ]
@@ -91,6 +121,7 @@ test.describe('POST /carrinhos', () => {
                 Authorization: authorization
             }
         });
+        // 3. Validações
         expect(response.ok()).toBeTruthy();
         expect(response.status()).toBe(201);
 
