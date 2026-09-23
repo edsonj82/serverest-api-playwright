@@ -977,7 +977,7 @@ test.describe('DELETE /carrinhos/concluir-compra', () => {
 
     test.beforeAll(async ({ request }) => {
         // 1. Dados do usuário Administrador
-        const user = getUserAdmin();
+        const user = getUser();
 
         // 2. Criar usuário admin
         const response = await request.post('https://serverest.dev/usuarios', {
@@ -1048,7 +1048,7 @@ test.describe('DELETE /carrinhos/concluir-compra', () => {
 
     test('it should return error when a shopping cart is not found for the user', async ({ request }) => {
         // 1. Dados do usuário Administrador
-        const user = getUserAdmin();
+        const user = getUser();
         // 2. Criar usuário admin
         const userResponse = await request.post('https://serverest.dev/usuarios', {
             data: user
@@ -1138,8 +1138,8 @@ test.describe('DELETE /carrinhos/concluir-compra', () => {
     });
 
     test('it should return error when trying to conclude purchase with a token of a deleted user', async ({ request }) => {
-        // 1. Dados do usuário Administrador
-        const user = getUserAdmin();
+        // 1. Dados do usuário Administrador => user.administrador = 'true'
+        const user = getUser();
         // 2. Criar usuário admin
         const response = await request.post('https://serverest.dev/usuarios', {
             data: user
@@ -1149,13 +1149,14 @@ test.describe('DELETE /carrinhos/concluir-compra', () => {
 
         const createResponseBody = await response.json();
         const userId = createResponseBody._id;
-        console.log('userId:', userId);
+        // console.log('userId:', userId);
 
         // 3. Fazer login para capturar o Token
+        // TODO FIX: Ensure the login endpoint and user credentials are correct => REFACTOR if necessary
         const loginResponse = await request.post('https://serverest.dev/login', {
             data: {
-                email: email,
-                password: password
+                email: user.email,
+                password: user.password
             }
         });
 
