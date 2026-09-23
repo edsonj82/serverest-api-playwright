@@ -800,33 +800,52 @@ test.describe('GET /carrinhos', () => {
     });
 
     test('it should return the shopping cart for a specific quantidadeTotal', async ({ request }) => {
+        // 1. Criar novo usuário e obter token isolado
+        const user = getUser();
+        await request.post('https://serverest.dev/usuarios', { data: user });
 
-        // 1. Cria o carrinho
+        const loginRes = await request.post('https://serverest.dev/login', {
+            data: { email: user.email, password: user.password }
+        });
+        const { authorization: freshToken } = await loginRes.json();
+
+        // 2. Criar um produto dinâmico e exclusivo
+        const product = getProduct();
+        const productRes = await request.post('https://serverest.dev/produtos', {
+            data: product,
+            headers: {
+                'Content-Type': 'application/json',
+                'authorization': freshToken
+            }
+        });
+        const { _id: freshProductId } = await productRes.json();
+
+        // 3. Criar o carrinho com dados isolados
         const createCartResponse = await request.post('https://serverest.dev/carrinhos', {
             data: {
                 produtos: [
                     {
-                        idProduto: productId,
+                        idProduto: freshProductId,
                         quantidade: 1
                     }
                 ]
             },
             headers: {
                 'Content-Type': 'application/json',
-                'authorization': authorization
+                'authorization': freshToken
             }
-
         });
+
         expect(createCartResponse.ok()).toBeTruthy();
 
         const createCartData = await createCartResponse.json();
         const cartId = createCartData._id;
 
-        // 2. Busca o carrinho específico pelo _id
+        // 4. Buscar o carrinho específico pelo _id
         const getCartResponse = await request.get(`https://serverest.dev/carrinhos/${cartId}`, {
             headers: {
                 'Content-Type': 'application/json',
-                'authorization': authorization
+                'authorization': freshToken
             }
         });
         expect(getCartResponse.ok()).toBeTruthy();
@@ -834,21 +853,20 @@ test.describe('GET /carrinhos', () => {
 
         const getCartData = await getCartResponse.json();
         const quantidadeTotal = getCartData.quantidadeTotal;
-        console.log('quantidadeTotal:', quantidadeTotal);
 
-        // 3. Busca o carrinho específico pelo quantidadeTotal
+        // 5. Query param por quantidadeTotal
         const getCartByQuantidadeTotalResponse = await request.get(`https://serverest.dev/carrinhos?quantidadeTotal=${quantidadeTotal}`, {
             headers: {
                 'Content-Type': 'application/json',
-                'authorization': authorization
+                'authorization': freshToken
             }
         });
         expect(getCartByQuantidadeTotalResponse.ok()).toBeTruthy();
         expect(getCartByQuantidadeTotalResponse.status()).toBe(200);
 
         const getCartByQuantidadeTotalData = await getCartByQuantidadeTotalResponse.json();
-        console.log('Response data for quantidadeTotal:', getCartByQuantidadeTotalData);
 
+        // 6. Validações
         expect(getCartData.quantidadeTotal).toBe(getCartByQuantidadeTotalData.carrinhos[0].quantidadeTotal);
 
         expect(getCartByQuantidadeTotalData).toHaveProperty('carrinhos');
