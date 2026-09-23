@@ -1201,7 +1201,7 @@ test.describe('DELETE /carrinhos/cancelar-compra', () => {
 
     test.beforeAll(async ({ request }) => {
         // 1. Dados do usuário Administrador
-        const user = getUserAdmin();
+        const user = getUser();
 
         // 2. Criar usuário admin
         const response = await request.post('https://serverest.dev/usuarios', {
