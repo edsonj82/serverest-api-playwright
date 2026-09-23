@@ -187,6 +187,16 @@ test.describe('POST /carrinhos', () => {
     });
 
     test('it should return an error when creating a shopping cart with an invalid product ID', async ({ request }) => {
+        // 1. Cria usuário e obtém token exclusivo para este teste
+        const user = getUser();
+        await request.post('https://serverest.dev/usuarios', { data: user });
+
+        const loginRes = await request.post('https://serverest.dev/login', {
+            data: { email: user.email, password: user.password }
+        });
+        const { authorization: freshToken } = await loginRes.json();
+
+        // 2. Executa a chamada do carrinho com o token isolado
         const response = await request.post('https://serverest.dev/carrinhos', {
             data: {
                 produtos: [
@@ -197,7 +207,7 @@ test.describe('POST /carrinhos', () => {
                 ]
             },
             headers: {
-                Authorization: authorization
+                Authorization: freshToken
             }
         });
         expect(response.ok()).toBeFalsy();
