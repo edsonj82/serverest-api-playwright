@@ -74,9 +74,19 @@ test.describe('POST /carrinhos', () => {
 
     // TODO: Adicionar teste para criar carrinho com múltiplos produtos
     test('it should create a shopping cart with multiple products successfully', async ({ request }) => {
-        // 1. Criar dois produtos válidos na API via fábrica/endpoint
+        // 1. Criar um novo usuário exclusivo para este teste (evita conflito de carrinho ativo)
+        const user = getUser();
+        await request.post('https://serverest.dev/usuarios', { data: user });
+
+        const loginRes = await request.post('https://serverest.dev/login', {
+            data: { email: user.email, password: user.password }
+        });
+        const { authorization: freshToken } = await loginRes.json();
+
+        // 2. Criar dois produtos com nomes garantidamente distintos
         const product1 = getProduct();
         const product2 = getProduct();
+        product2.nome = `${product2.nome} - Exclusivo ${Date.now()}`;
 
         const productResponse1 = await request.post('https://serverest.dev/produtos', {
             data: product1,
@@ -118,7 +128,7 @@ test.describe('POST /carrinhos', () => {
                 ]
             },
             headers: {
-                Authorization: authorization
+                Authorization: freshToken
             }
         });
         // 3. Validações
