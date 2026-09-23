@@ -425,7 +425,7 @@ test.describe('GET /carrinhos', () => {
     let authorization, productId;
 
     test.beforeAll(async ({ request }) => {
-        const user = getUserAdmin();
+        const user = getUser();
 
         // 2. Criar usuário admin
         const response = await request.post('https://serverest.dev/usuarios', {
