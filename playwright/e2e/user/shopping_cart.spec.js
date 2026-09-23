@@ -72,7 +72,6 @@ test.describe('POST /carrinhos', () => {
         expect(responseData).toHaveProperty('message', 'Cadastro realizado com sucesso');
     });
 
-    // TODO: Adicionar teste para criar carrinho com múltiplos produtos
     test('it should create a shopping cart with multiple products successfully', async ({ request }) => {
         // 1. Criar um novo usuário exclusivo para este teste (evita conflito de carrinho ativo)
         const user = getUser();
@@ -143,357 +142,357 @@ test.describe('POST /carrinhos', () => {
     });
 
     test('it should return an error when creating a shopping cart with duplicate products', async ({ request }) => {
-    // 1. Criar utilizador e obter token exclusivo para o teste
-    const user = getUser();
-    await request.post('https://serverest.dev/usuarios', { data: user });
+        // 1. Criar utilizador e obter token exclusivo para o teste
+        const user = getUser();
+        await request.post('https://serverest.dev/usuarios', { data: user });
 
-    const loginRes = await request.post('https://serverest.dev/login', {
-        data: { email: user.email, password: user.password }
+        const loginRes = await request.post('https://serverest.dev/login', {
+            data: { email: user.email, password: user.password }
+        });
+        const { authorization: freshToken } = await loginRes.json();
+
+        // 2. Criar apenas UM produto válido na API
+        const product = getProduct();
+        const productResponse = await request.post('https://serverest.dev/produtos', {
+            data: product,
+            headers: {
+                'Content-Type': 'application/json',
+                'authorization': freshToken
+            }
+        });
+
+        const { _id: productId } = await productResponse.json();
+
+        // 3. Tentar criar o carrinho enviando o MESMO idProduto duas vezes
+        const response = await request.post('https://serverest.dev/carrinhos', {
+            data: {
+                produtos: [
+                    {
+                        idProduto: productId,
+                        quantidade: 1
+                    },
+                    {
+                        idProduto: productId, // Duplicando o ID do produto propositadamente
+                        quantidade: 3
+                    }
+                ]
+            },
+            headers: {
+                Authorization: freshToken
+            }
+        });
+
+        // 4. Validações do cenário negativo
+        expect(response.ok()).toBeFalsy();
+        expect(response.status()).toBe(400);
+
+        const responseData = await response.json();
+        expect(responseData).toHaveProperty('message', 'Não é permitido possuir produto duplicado');
     });
-    const { authorization: freshToken } = await loginRes.json();
 
-    // 2. Criar apenas UM produto válido na API
-    const product = getProduct();
-    const productResponse = await request.post('https://serverest.dev/produtos', {
-        data: product,
-        headers: {
-            'Content-Type': 'application/json',
-            'authorization': freshToken
-        }
+    test('it should validate the quantity of products in the shopping cart', async ({ request }) => {
+        const response = await request.post('https://serverest.dev/carrinhos', {
+            data: {
+                produtos: [
+                    {
+                        idProduto: productId, // Substitua pelo ID do produto criado dinamicamente
+                        quantidade: 0,
+                    }
+                ]
+            },
+            headers: {
+                Authorization: authorization
+            }
+        });
+        expect(response.ok()).toBeFalsy();
+        expect(response.status()).toBe(400);
+
+        const responseData = await response.json();
+        expect(responseData).toHaveProperty('produtos', 'produtos não contém 1 valor obrigatório')
+        // console.log('Response data:', responseData);
     });
 
-    const { _id: productId } = await productResponse.json();
+    test('it should return an error when creating more than one shopping cart for the same user', async ({ request }) => {
+        // Primeiro, cria um carrinho para o usuário
+        const firstCartResponse = await request.post('https://serverest.dev/carrinhos', {
+            data: {
+                produtos: [
+                    {
+                        idProduto: productId,
+                        quantidade: 1
+                    }
+                ]
+            },
+            headers: {
+                Authorization: authorization
+            }
+        });
+        expect(firstCartResponse.ok()).toBeTruthy();
 
-    // 3. Tentar criar o carrinho enviando o MESMO idProduto duas vezes
-    const response = await request.post('https://serverest.dev/carrinhos', {
-        data: {
-            produtos: [
-                {
-                    idProduto: productId,
-                    quantidade: 1
-                },
-                {
-                    idProduto: productId, // Duplicando o ID do produto propositadamente
-                    quantidade: 3
-                }
-            ]
-        },
-        headers: {
-            Authorization: freshToken
-        }
+        // Agora, tenta criar outro carrinho para o mesmo usuário
+        const secondCartResponse = await request.post('https://serverest.dev/carrinhos', {
+            data: {
+                produtos: [
+                    {
+                        idProduto: productId,
+                        quantidade: 1
+                    }
+                ]
+            },
+            headers: {
+                Authorization: authorization
+            }
+        });
+        expect(secondCartResponse.ok()).toBeFalsy();
+        expect(secondCartResponse.status()).toBe(400);
+
+        const responseData = await secondCartResponse.json();
+        expect(responseData).toHaveProperty('message', 'Não é permitido ter mais de 1 carrinho')
     });
 
-    // 4. Validações do cenário negativo
-    expect(response.ok()).toBeFalsy();
-    expect(response.status()).toBe(400);
+    test('it should return an error when creating a shopping cart with an invalid product ID', async ({ request }) => {
+        // 1. Cria usuário e obtém token exclusivo para este teste
+        const user = getUser();
+        await request.post('https://serverest.dev/usuarios', { data: user });
 
-    const responseData = await response.json();
-    expect(responseData).toHaveProperty('message', 'Não é permitido possuir produto duplicado');
-});
+        const loginRes = await request.post('https://serverest.dev/login', {
+            data: { email: user.email, password: user.password }
+        });
+        const { authorization: freshToken } = await loginRes.json();
 
-test('it should validate the quantity of products in the shopping cart', async ({ request }) => {
-    const response = await request.post('https://serverest.dev/carrinhos', {
-        data: {
-            produtos: [
-                {
-                    idProduto: productId, // Substitua pelo ID do produto criado dinamicamente
-                    quantidade: 0,
-                }
-            ]
-        },
-        headers: {
-            Authorization: authorization
-        }
+        // 2. Executa a chamada do carrinho com o token isolado
+        const response = await request.post('https://serverest.dev/carrinhos', {
+            data: {
+                produtos: [
+                    {
+                        idProduto: 'invalid-product-id',
+                        quantidade: 1
+                    }
+                ]
+            },
+            headers: {
+                Authorization: freshToken
+            }
+        });
+        expect(response.ok()).toBeFalsy();
+        expect(response.status()).toBe(400);
+
+        const responseData = await response.json();
+        expect(responseData).toHaveProperty('message', 'Produto não encontrado')
+    })
+
+    test('it should return an error when a shopping cart can not have suficient quantity of products', async ({ request }) => {
+        const response = await request.post('https://serverest.dev/carrinhos', {
+            data: {
+                produtos: [
+                    {
+                        idProduto: productId,
+                        quantidade: 1000 // Quantidade maior que a disponível
+                    }
+                ]
+            },
+            headers: {
+                Authorization: authorization
+            }
+        });
+        expect(response.ok()).toBeFalsy();
+        expect(response.status()).toBe(400);
+
+        const responseData = await response.json();
+        expect(responseData).toHaveProperty('message', 'Produto não possui quantidade suficiente')
     });
-    expect(response.ok()).toBeFalsy();
-    expect(response.status()).toBe(400);
 
-    const responseData = await response.json();
-    expect(responseData).toHaveProperty('produtos', 'produtos não contém 1 valor obrigatório')
-    // console.log('Response data:', responseData);
-});
+    test('it should return an error when creating a shopping cart without authorization', async ({ request }) => {
+        const response = await request.post('https://serverest.dev/carrinhos', {
+            data: {
+                produtos: [
+                    {
+                        idProduto: productId,
+                        quantidade: 1
+                    }
+                ]
+            }
+        });
+        expect(response.ok()).toBeFalsy();
+        expect(response.status()).toBe(401);
 
-test('it should return an error when creating more than one shopping cart for the same user', async ({ request }) => {
-    // Primeiro, cria um carrinho para o usuário
-    const firstCartResponse = await request.post('https://serverest.dev/carrinhos', {
-        data: {
-            produtos: [
-                {
-                    idProduto: productId,
-                    quantidade: 1
-                }
-            ]
-        },
-        headers: {
-            Authorization: authorization
-        }
+        const responseData = await response.json();
+        expect(responseData).toHaveProperty('message', 'Token de acesso ausente, inválido, expirado ou usuário do token não existe mais')
     });
-    expect(firstCartResponse.ok()).toBeTruthy();
 
-    // Agora, tenta criar outro carrinho para o mesmo usuário
-    const secondCartResponse = await request.post('https://serverest.dev/carrinhos', {
-        data: {
-            produtos: [
-                {
-                    idProduto: productId,
-                    quantidade: 1
-                }
-            ]
-        },
-        headers: {
-            Authorization: authorization
-        }
+    test('it should return an error when creating a shopping cart with an invalid authorization token', async ({ request }) => {
+        const response = await request.post('https://serverest.dev/carrinhos', {
+            data: {
+                produtos: [
+                    {
+                        idProduto: productId,
+                        quantidade: 1
+                    }
+                ]
+            },
+            headers: {
+                Authorization: 'invalid-token'
+            }
+        });
+        expect(response.ok()).toBeFalsy();
+        expect(response.status()).toBe(401);
+
+        const responseData = await response.json();
+        expect(responseData).toHaveProperty('message', 'Token de acesso ausente, inválido, expirado ou usuário do token não existe mais');
     });
-    expect(secondCartResponse.ok()).toBeFalsy();
-    expect(secondCartResponse.status()).toBe(400);
 
-    const responseData = await secondCartResponse.json();
-    expect(responseData).toHaveProperty('message', 'Não é permitido ter mais de 1 carrinho')
-});
+    test('it should return an error when creating a shopping cart with an expired authorization token', async ({ request }) => {
+        // Simulando um token expirado (substitua pelo seu token real expirado)
+        const expiredToken = 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY0YjQ3YjE2YzM4ZDAwMDAxIiwibmFtZSI6IkpvaG4gRG9lIiwiZW1haWwiOiJqb2huLmRvZUBleGFtcGxlLmNvbSIsImFkbWluaXN0cmFkb3IiOnRydWUsImlhdCI6MTY5NzQyMDgwMCwiZXhwIjoxNjk3NDIwODAwfQ.invalidsignature';
 
-test('it should return an error when creating a shopping cart with an invalid product ID', async ({ request }) => {
-    // 1. Cria usuário e obtém token exclusivo para este teste
-    const user = getUser();
-    await request.post('https://serverest.dev/usuarios', { data: user });
+        const response = await request.post('https://serverest.dev/carrinhos', {
+            data: {
+                produtos: [
+                    {
+                        idProduto: productId,
+                        quantidade: 1
+                    }
+                ]
+            },
+            headers: {
+                Authorization: expiredToken
+            }
+        });
+        expect(response.ok()).toBeFalsy();
+        expect(response.status()).toBe(401);
 
-    const loginRes = await request.post('https://serverest.dev/login', {
-        data: { email: user.email, password: user.password }
+        const responseData = await response.json();
+        expect(responseData).toHaveProperty('message', 'Token de acesso ausente, inválido, expirado ou usuário do token não existe mais');
     });
-    const { authorization: freshToken } = await loginRes.json();
 
-    // 2. Executa a chamada do carrinho com o token isolado
-    const response = await request.post('https://serverest.dev/carrinhos', {
-        data: {
-            produtos: [
-                {
-                    idProduto: 'invalid-product-id',
-                    quantidade: 1
-                }
-            ]
-        },
-        headers: {
-            Authorization: freshToken
-        }
+    test('it should return an error when creating a shopping cart with an empty product list', async ({ request }) => {
+        const response = await request.post('https://serverest.dev/carrinhos', {
+            data: {
+                produtos: []
+            },
+            headers: {
+                Authorization: authorization
+            }
+        });
+        expect(response.ok()).toBeFalsy();
+        expect(response.status()).toBe(400);
+
+        console.log('Response body:', await response.json());
+
+        const responseData = await response.json();
+        // expect(responseData['produtos[0].idProduto']).toBe('produtos[0].idProduto é obrigatório');
+        expect(responseData).toHaveProperty('produtos', 'produtos não contém 1 valor obrigatório');
     });
-    expect(response.ok()).toBeFalsy();
-    expect(response.status()).toBe(400);
 
-    const responseData = await response.json();
-    expect(responseData).toHaveProperty('message', 'Produto não encontrado')
-})
+    test('it should return an error when creating a shopping cart with a missing product ID', async ({ request }) => {
+        const response = await request.post('https://serverest.dev/carrinhos', {
+            data: {
+                produtos: [
+                    {
+                        quantidade: 1
+                    }
+                ]
+            },
+            headers: {
+                Authorization: authorization
+            }
+        });
+        expect(response.ok()).toBeFalsy();
+        expect(response.status()).toBe(400);
 
-test('it should return an error when a shopping cart can not have suficient quantity of products', async ({ request }) => {
-    const response = await request.post('https://serverest.dev/carrinhos', {
-        data: {
-            produtos: [
-                {
-                    idProduto: productId,
-                    quantidade: 1000 // Quantidade maior que a disponível
-                }
-            ]
-        },
-        headers: {
-            Authorization: authorization
-        }
+        console.log('Response body:', await response.json());
+
+        const responseData = await response.json();
+        expect(responseData['produtos[0].idProduto']).toBe('produtos[0].idProduto é obrigatório');
     });
-    expect(response.ok()).toBeFalsy();
-    expect(response.status()).toBe(400);
 
-    const responseData = await response.json();
-    expect(responseData).toHaveProperty('message', 'Produto não possui quantidade suficiente')
-});
+    test('it should return an error when creating a shopping cart with a missing product quantity', async ({ request }) => {
+        const response = await request.post('https://serverest.dev/carrinhos', {
+            data: {
+                produtos: [
+                    {
+                        idProduto: '1'
+                    }
+                ]
+            },
+            headers: {
+                Authorization: authorization
+            }
+        });
+        expect(response.ok()).toBeFalsy();
+        expect(response.status()).toBe(400);
 
-test('it should return an error when creating a shopping cart without authorization', async ({ request }) => {
-    const response = await request.post('https://serverest.dev/carrinhos', {
-        data: {
-            produtos: [
-                {
-                    idProduto: productId,
-                    quantidade: 1
-                }
-            ]
-        }
+        console.log('Response body:', await response.json());
+
+        const responseData = await response.json();
+        expect(responseData['produtos[0].quantidade']).toBe('produtos[0].quantidade é obrigatório');
     });
-    expect(response.ok()).toBeFalsy();
-    expect(response.status()).toBe(401);
 
-    const responseData = await response.json();
-    expect(responseData).toHaveProperty('message', 'Token de acesso ausente, inválido, expirado ou usuário do token não existe mais')
-});
+    test('it should return an error when creating a shopping cart with a negative product quantity', async ({ request }) => {
+        const response = await request.post('https://serverest.dev/carrinhos', {
+            data: {
+                produtos: [
+                    {
+                        idProduto: '1',
+                        quantidade: -1
+                    }
+                ]
+            },
+            headers: {
+                Authorization: authorization
+            }
+        });
+        expect(response.ok()).toBeFalsy();
+        expect(response.status()).toBe(400);
 
-test('it should return an error when creating a shopping cart with an invalid authorization token', async ({ request }) => {
-    const response = await request.post('https://serverest.dev/carrinhos', {
-        data: {
-            produtos: [
-                {
-                    idProduto: productId,
-                    quantidade: 1
-                }
-            ]
-        },
-        headers: {
-            Authorization: 'invalid-token'
-        }
+        const responseData = await response.json();
+        console.log('Response body:', responseData);
+        expect(responseData['produtos[0].quantidade']).toBe('produtos[0].quantidade deve ser um número positivo');
     });
-    expect(response.ok()).toBeFalsy();
-    expect(response.status()).toBe(401);
 
-    const responseData = await response.json();
-    expect(responseData).toHaveProperty('message', 'Token de acesso ausente, inválido, expirado ou usuário do token não existe mais');
-});
+    test('it should return an error when creating a shopping cart with a non-integer product quantity', async ({ request }) => {
+        const response = await request.post('https://serverest.dev/carrinhos', {
+            data: {
+                produtos: [
+                    {
+                        idProduto: '1',
+                        quantidade: 1.5
+                    }
+                ]
+            },
+            headers: {
+                Authorization: authorization
+            }
+        });
+        expect(response.ok()).toBeFalsy();
+        expect(response.status()).toBe(400);
 
-test('it should return an error when creating a shopping cart with an expired authorization token', async ({ request }) => {
-    // Simulando um token expirado (substitua pelo seu token real expirado)
-    const expiredToken = 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY0YjQ3YjE2YzM4ZDAwMDAxIiwibmFtZSI6IkpvaG4gRG9lIiwiZW1haWwiOiJqb2huLmRvZUBleGFtcGxlLmNvbSIsImFkbWluaXN0cmFkb3IiOnRydWUsImlhdCI6MTY5NzQyMDgwMCwiZXhwIjoxNjk3NDIwODAwfQ.invalidsignature';
-
-    const response = await request.post('https://serverest.dev/carrinhos', {
-        data: {
-            produtos: [
-                {
-                    idProduto: productId,
-                    quantidade: 1
-                }
-            ]
-        },
-        headers: {
-            Authorization: expiredToken
-        }
+        const responseData = await response.json();
+        console.log('Response body:', responseData);
+        expect(responseData['produtos[0].quantidade']).toBe('produtos[0].quantidade deve ser um inteiro');
     });
-    expect(response.ok()).toBeFalsy();
-    expect(response.status()).toBe(401);
 
-    const responseData = await response.json();
-    expect(responseData).toHaveProperty('message', 'Token de acesso ausente, inválido, expirado ou usuário do token não existe mais');
-});
+    test('it should return an error when creating a shopping cart with a non-numeric product quantity', async ({ request }) => {
+        const response = await request.post('https://serverest.dev/carrinhos', {
+            data: {
+                produtos: [
+                    {
+                        idProduto: '1',
+                        quantidade: 'abc'
+                    }
+                ]
+            },
+            headers: {
+                Authorization: authorization
+            }
+        });
+        expect(response.ok()).toBeFalsy();
+        expect(response.status()).toBe(400);
 
-test('it should return an error when creating a shopping cart with an empty product list', async ({ request }) => {
-    const response = await request.post('https://serverest.dev/carrinhos', {
-        data: {
-            produtos: []
-        },
-        headers: {
-            Authorization: authorization
-        }
+        const responseData = await response.json();
+        console.log('Response body:', responseData);
+        expect(responseData['produtos[0].quantidade']).toBe('produtos[0].quantidade deve ser um número');
     });
-    expect(response.ok()).toBeFalsy();
-    expect(response.status()).toBe(400);
-
-    console.log('Response body:', await response.json());
-
-    const responseData = await response.json();
-    // expect(responseData['produtos[0].idProduto']).toBe('produtos[0].idProduto é obrigatório');
-    expect(responseData).toHaveProperty('produtos', 'produtos não contém 1 valor obrigatório');
-});
-
-test('it should return an error when creating a shopping cart with a missing product ID', async ({ request }) => {
-    const response = await request.post('https://serverest.dev/carrinhos', {
-        data: {
-            produtos: [
-                {
-                    quantidade: 1
-                }
-            ]
-        },
-        headers: {
-            Authorization: authorization
-        }
-    });
-    expect(response.ok()).toBeFalsy();
-    expect(response.status()).toBe(400);
-
-    console.log('Response body:', await response.json());
-
-    const responseData = await response.json();
-    expect(responseData['produtos[0].idProduto']).toBe('produtos[0].idProduto é obrigatório');
-});
-
-test('it should return an error when creating a shopping cart with a missing product quantity', async ({ request }) => {
-    const response = await request.post('https://serverest.dev/carrinhos', {
-        data: {
-            produtos: [
-                {
-                    idProduto: '1'
-                }
-            ]
-        },
-        headers: {
-            Authorization: authorization
-        }
-    });
-    expect(response.ok()).toBeFalsy();
-    expect(response.status()).toBe(400);
-
-    console.log('Response body:', await response.json());
-
-    const responseData = await response.json();
-    expect(responseData['produtos[0].quantidade']).toBe('produtos[0].quantidade é obrigatório');
-});
-
-test('it should return an error when creating a shopping cart with a negative product quantity', async ({ request }) => {
-    const response = await request.post('https://serverest.dev/carrinhos', {
-        data: {
-            produtos: [
-                {
-                    idProduto: '1',
-                    quantidade: -1
-                }
-            ]
-        },
-        headers: {
-            Authorization: authorization
-        }
-    });
-    expect(response.ok()).toBeFalsy();
-    expect(response.status()).toBe(400);
-
-    const responseData = await response.json();
-    console.log('Response body:', responseData);
-    expect(responseData['produtos[0].quantidade']).toBe('produtos[0].quantidade deve ser um número positivo');
-});
-
-test('it should return an error when creating a shopping cart with a non-integer product quantity', async ({ request }) => {
-    const response = await request.post('https://serverest.dev/carrinhos', {
-        data: {
-            produtos: [
-                {
-                    idProduto: '1',
-                    quantidade: 1.5
-                }
-            ]
-        },
-        headers: {
-            Authorization: authorization
-        }
-    });
-    expect(response.ok()).toBeFalsy();
-    expect(response.status()).toBe(400);
-
-    const responseData = await response.json();
-    console.log('Response body:', responseData);
-    expect(responseData['produtos[0].quantidade']).toBe('produtos[0].quantidade deve ser um inteiro');
-});
-
-test('it should return an error when creating a shopping cart with a non-numeric product quantity', async ({ request }) => {
-    const response = await request.post('https://serverest.dev/carrinhos', {
-        data: {
-            produtos: [
-                {
-                    idProduto: '1',
-                    quantidade: 'abc'
-                }
-            ]
-        },
-        headers: {
-            Authorization: authorization
-        }
-    });
-    expect(response.ok()).toBeFalsy();
-    expect(response.status()).toBe(400);
-
-    const responseData = await response.json();
-    console.log('Response body:', responseData);
-    expect(responseData['produtos[0].quantidade']).toBe('produtos[0].quantidade deve ser um número');
-});
 });
 
 test.describe('GET /carrinhos', () => {
@@ -599,29 +598,49 @@ test.describe('GET /carrinhos', () => {
     });
 
     test('it should return all shopping carts for the user', async ({ request }) => {
-        // 1. Cria o carrinho
+        // 1. Criar um novo usuário admin e obter um token exclusivo
+        const user = getUser();
+        await request.post('https://serverest.dev/usuarios', { data: user });
+
+        const loginRes = await request.post('https://serverest.dev/login', {
+            data: { email: user.email, password: user.password }
+        });
+        const { authorization: freshToken } = await loginRes.json();
+
+        // 2. Criar um produto dinâmico e válido
+        const product = getProduct();
+        const productRes = await request.post('https://serverest.dev/produtos', {
+            data: product,
+            headers: {
+                'Content-Type': 'application/json',
+                'authorization': freshToken
+            }
+        });
+        const { _id: freshProductId } = await productRes.json();
+
+        // 3. Criar o carrinho com o token e produto isolados
         const createCartResponse = await request.post('https://serverest.dev/carrinhos', {
             data: {
                 produtos: [
                     {
-                        idProduto: productId,
+                        idProduto: freshProductId,
                         quantidade: 1
                     }
                 ]
             },
             headers: {
                 'Content-Type': 'application/json',
-                'authorization': authorization
+                'authorization': freshToken
             }
         });
 
         expect(createCartResponse.ok()).toBeTruthy();
 
-        // 2. Busca os carrinhos
+        // 4. Buscar os carrinhos
         const getCartResponse = await request.get('https://serverest.dev/carrinhos', {
             headers: {
                 'Content-Type': 'application/json',
-                'authorization': authorization
+                'authorization': freshToken
             }
         });
 
@@ -630,7 +649,7 @@ test.describe('GET /carrinhos', () => {
 
         const responseData = await getCartResponse.json();
 
-        // console.log('Response data:', responseData.carrinhos[0]);
+        // 5. Validações da estrutura
         expect(responseData).toHaveProperty('carrinhos');
         expect(responseData.carrinhos[0]).toHaveProperty('produtos');
         expect(responseData.carrinhos[0].produtos[0]).toHaveProperty('idProduto');
