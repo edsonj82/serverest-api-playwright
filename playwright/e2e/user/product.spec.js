@@ -1,23 +1,15 @@
 import { test, expect } from '@playwright/test';
 import { faker } from '@faker-js/faker';
+import { getUser } from '../../support/factories/user.js';
+import { getProduct } from '../../support/factories/product.js';
 
 test.describe('POST /produtos', () => {
     let authorization;
 
     test.beforeAll(async ({ request }) => {
         // 1. Dados do usuário Administrador
-        const firstName = faker.person.firstName();
-        const lastName = faker.person.lastName();
-        const fullName = `${firstName} ${lastName}`;
-        const email = faker.internet.email({ firstName, lastName }).toLowerCase();
-        const password = faker.internet.password();
-
-        const user = {
-            nome: fullName,
-            email: email,
-            password: password,
-            administrador: 'true' // Obrigatório ser string 'true' no ServeRest
-        };
+        const user = getUser();
+        user.administrador = "true";
 
         // 2. Criar usuário admin
         const response = await request.post('https://serverest.dev/usuarios', {
@@ -28,8 +20,8 @@ test.describe('POST /produtos', () => {
         // 3. Fazer login para capturar o Token
         const loginResponse = await request.post('https://serverest.dev/login', {
             data: {
-                email: email,
-                password: password
+                email: user.email,
+                password: user.password
             }
         });
         expect(loginResponse.ok()).toBeTruthy();
@@ -39,20 +31,14 @@ test.describe('POST /produtos', () => {
     });
 
     test('it should create a product successfully with valid data', async ({ request }) => {
-        // Gera dados novos do produto dentro do teste
-        const product = {
-            nome: `${faker.commerce.productName()} ${Date.now()}`, // Combina o nome do Faker com um timestamp para NUNCA dar conflito de nome na API
-            preco: faker.number.int({ min: 10, max: 1000 }), // Gera um número inteiro válido (o ServeRest não aceita decimais nem string no preço)
-            descricao: faker.commerce.productDescription(),
-            quantidade: faker.number.int({ min: 1, max: 100 }) // Converte para número inteiro
-        };
+
+        const product = getProduct()
 
         const response = await request.post('https://serverest.dev/produtos', {
             data: product,
             headers: {
                 'Content-Type': 'application/json',
-                // Garante a passagem da autorização corretamente
-                'authorization': authorization
+                'authorization': authorization// Garante a passagem da autorização corretamente
             }
         });
 
@@ -65,12 +51,8 @@ test.describe('POST /produtos', () => {
 
     test('it should return an error when creating a duplicate product name', async ({ request }) => {
         // Gera dados novos do produto dentro do teste
-        const product = {
-            nome: `${faker.commerce.productName()} ${Date.now()}`,
-            preco: faker.number.int({ min: 10, max: 1000 }),
-            descricao: faker.commerce.productDescription(),
-            quantidade: faker.number.int({ min: 1, max: 100 })
-        };
+        const product = getProduct();
+        const duplicateProduct = { ...product };
 
         // Primeiro, cria o produto
         const createResponse = await request.post('https://serverest.dev/produtos', {
@@ -84,7 +66,7 @@ test.describe('POST /produtos', () => {
 
         // Tenta criar o mesmo produto novamente
         const response = await request.post('https://serverest.dev/produtos', {
-            data: product,
+            data: duplicateProduct,
             headers: {
                 'Content-Type': 'application/json',
                 'authorization': authorization
@@ -100,17 +82,8 @@ test.describe('POST /produtos', () => {
 
     test('it should return an error when the user is not an administrator', async ({ request }) => {
         // 1. Criar um usuário comum (não administrador)
-        const firstName = faker.person.firstName();
-        const lastName = faker.person.lastName();
-        const fullName = `${firstName} ${lastName}`;
-        const email = faker.internet.email({ firstName, lastName }).toLowerCase();
-        const password = faker.internet.password();
-        const user = {
-            nome: fullName,
-            email: email,
-            password: password,
-            administrador: 'false' // Usuário comum
-        };
+        const user = getUser();
+        user.administrador = 'false'; // Define o usuário como comum
 
         // 2. Criar usuário comum
         const createUserResponse = await request.post('https://serverest.dev/usuarios', {
@@ -121,8 +94,8 @@ test.describe('POST /produtos', () => {
         // 3. Fazer login para capturar o Token do usuário comum
         const loginResponse = await request.post('https://serverest.dev/login', {
             data: {
-                email: email,
-                password: password
+                email: user.email,
+                password: user.password
             }
         });
         expect(loginResponse.ok()).toBeTruthy();
@@ -131,12 +104,7 @@ test.describe('POST /produtos', () => {
         const userAuthorization = loginData.authorization; // Armazena "Bearer <token>"
 
         // 4. Tentar criar um produto com o usuário comum
-        const product = {
-            nome: `${faker.commerce.productName()} ${Date.now()}`,
-            preco: faker.number.int({ min: 10, max: 1000 }),
-            descricao: faker.commerce.productDescription(),
-            quantidade: faker.number.int({ min: 1, max: 100 })
-        };
+        const product = getProduct();
 
         const response = await request.post('https://serverest.dev/produtos', {
             data: product,
@@ -154,15 +122,12 @@ test.describe('POST /produtos', () => {
     });
 
     test('it should return an error when creating a product with missing required nome field', async ({ request }) => {
-        const incompleteProduct = {
-            // nome is missing
-            preco: faker.number.int({ min: 10, max: 1000 }),
-            descricao: faker.commerce.productDescription(),
-            quantidade: faker.number.int({ min: 1, max: 100 })
-        };
+
+        const product = getProduct();
+        delete product.nome;
 
         const response = await request.post('https://serverest.dev/produtos', {
-            data: incompleteProduct,
+            data: product,
             headers: {
                 'Content-Type': 'application/json',
                 'authorization': authorization
@@ -177,15 +142,11 @@ test.describe('POST /produtos', () => {
     });
 
     test('it should return an error when creating a product with empty required nome field', async ({ request }) => {
-        const incompleteProduct = {
-            nome: '', // nome is empty
-            preco: faker.number.int({ min: 10, max: 1000 }),
-            descricao: faker.commerce.productDescription(),
-            quantidade: faker.number.int({ min: 1, max: 100 })
-        };
+        const product = getProduct();
+        product.nome = ''; // nome is empty
 
         const response = await request.post('https://serverest.dev/produtos', {
-            data: incompleteProduct,
+            data: product,
             headers: {
                 'Content-Type': 'application/json',
                 'authorization': authorization
@@ -199,15 +160,12 @@ test.describe('POST /produtos', () => {
     });
 
     test('it should return an error when creating a product with missing required preco field', async ({ request }) => {
-        const incompleteProduct = {
-            nome: faker.commerce.productName(),
-            // preco is missing
-            descricao: faker.commerce.productDescription(),
-            quantidade: faker.number.int({ min: 1, max: 100 })
-        };
+
+        const product = getProduct();
+        delete product.preco;
 
         const response = await request.post('https://serverest.dev/produtos', {
-            data: incompleteProduct,
+            data: product,
             headers: {
                 'Content-Type': 'application/json',
                 'authorization': authorization
@@ -223,15 +181,11 @@ test.describe('POST /produtos', () => {
     });
 
     test('it should return an error when creating a product with empty required preco field', async ({ request }) => {
-        const incompleteProduct = {
-            nome: faker.commerce.productName(),
-            preco: '', // preco is empty
-            descricao: faker.commerce.productDescription(),
-            quantidade: faker.number.int({ min: 1, max: 100 })
-        };
+        const product = getProduct();
+        product.preco = ''; // preco is empty
 
         const response = await request.post('https://serverest.dev/produtos', {
-            data: incompleteProduct,
+            data: product,
             headers: {
                 'Content-Type': 'application/json',
                 'authorization': authorization
@@ -246,15 +200,11 @@ test.describe('POST /produtos', () => {
 
     test('it should return and error when creating a product with invalid preco field (string instead of number)', async ({ request }) => {
 
-        const invalid_price = '-10,00'; // preco is a string instead of a number
-        const incompleteProduct = {
-            nome: faker.commerce.productName(),
-            preco: invalid_price, // preco is a string instead of a number
-            descricao: faker.commerce.productDescription(),
-            quantidade: faker.number.int({ min: 1, max: 100 })
-        };
+        const product = getProduct();
+        product.preco = '-10,00'; // preco is a string instead of a number
+
         const response = await request.post('https://serverest.dev/produtos', {
-            data: incompleteProduct,
+            data: product,
             headers: {
                 'Content-Type': 'application/json',
                 'authorization': authorization
@@ -268,14 +218,12 @@ test.describe('POST /produtos', () => {
     });
 
     test('it should return an error when creating a product with missing required descricao field', async ({ request }) => {
-        const incompleteProduct = {
-            nome: faker.commerce.productName(),
-            preco: faker.number.int({ min: 10, max: 1000 }),
-            // descricao is missing
-            quantidade: faker.number.int({ min: 1, max: 100 })
-        };
+
+        const product = getProduct();
+        delete product.descricao;
+
         const response = await request.post('https://serverest.dev/produtos', {
-            data: incompleteProduct,
+            data: product,
             headers: {
                 'Content-Type': 'application/json',
                 'authorization': authorization
@@ -291,14 +239,12 @@ test.describe('POST /produtos', () => {
     });
 
     test('it should return an error when creating a product with empty required descricao field', async ({ request }) => {
-        const incompleteProduct = {
-            nome: faker.commerce.productName(),
-            preco: faker.number.int({ min: 10, max: 1000 }),
-            descricao: '', // descricao is empty
-            quantidade: faker.number.int({ min: 1, max: 100 })
-        };
+
+        const product = getProduct();
+        product.descricao = '';
+
         const response = await request.post('https://serverest.dev/produtos', {
-            data: incompleteProduct,
+            data: product,
             headers: {
                 'Content-Type': 'application/json',
                 'authorization': authorization
@@ -312,14 +258,12 @@ test.describe('POST /produtos', () => {
     });
 
     test('it should return an error when creating a product with missing required quantidade field', async ({ request }) => {
-        const incompleteProduct = {
-            nome: faker.commerce.productName(),
-            preco: faker.number.int({ min: 10, max: 1000 }),
-            descricao: faker.commerce.productDescription()
-            // quantidade is missing
-        };
+
+        const product = getProduct();
+        delete product.quantidade; // Remove the quantidade field to simulate missing required field
+
         const response = await request.post('https://serverest.dev/produtos', {
-            data: incompleteProduct,
+            data: product,
             headers: {
                 'Content-Type': 'application/json',
                 'authorization': authorization
@@ -332,14 +276,12 @@ test.describe('POST /produtos', () => {
     });
 
     test('it should return an error when creating a product with empty required quantidade field', async ({ request }) => {
-        const incompleteProduct = {
-            nome: faker.commerce.productName(),
-            preco: faker.number.int({ min: 10, max: 1000 }),
-            descricao: faker.commerce.productDescription(),
-            quantidade: '' // quantidade is empty
-        };
+
+        const product = getProduct();
+        product.quantidade = '';
+
         const response = await request.post('https://serverest.dev/produtos', {
-            data: incompleteProduct,
+            data: product,
             headers: {
                 'Content-Type': 'application/json',
                 'authorization': authorization
@@ -352,15 +294,12 @@ test.describe('POST /produtos', () => {
     });
 
     test('it should return an error when creating a product with invalid quantidade field (string instead of number)', async ({ request }) => {
-        const invalid_quantity = 'dez'; // quantidade is a string instead of a number
-        const incompleteProduct = {
-            nome: faker.commerce.productName(),
-            preco: faker.number.int({ min: 10, max: 1000 }),
-            descricao: faker.commerce.productDescription(),
-            quantidade: invalid_quantity // quantidade is a string instead of a number
-        };
+
+        const product = getProduct();
+        product.quantidade = 'dez'; // quantidade is a string instead of a number
+
         const response = await request.post('https://serverest.dev/produtos', {
-            data: incompleteProduct,
+            data: product,
             headers: {
                 'Content-Type': 'application/json',
                 'authorization': authorization
@@ -374,15 +313,12 @@ test.describe('POST /produtos', () => {
     });
 
     test('it should return an error when creating a product with missing required administrador field', async ({ request }) => {
-        const incompleteProduct = {
-            nome: faker.commerce.productName(),
-            preco: faker.number.int({ min: 10, max: 1000 }),
-            descricao: faker.commerce.productDescription(),
-            quantidade: faker.number.int({ min: 1, max: 100 })
-            // administrador is missing
-        };
+
+        const incompleteProduct = getProduct();
+        delete incompleteProduct.administrador;
+
         const response = await request.post('https://serverest.dev/produtos', {
-            data: incompleteProduct,
+            data: product,
             headers: {
                 'Content-Type': 'application/json',
                 'authorization': authorization
@@ -398,16 +334,12 @@ test.describe('POST /produtos', () => {
     });
 
     test('it should return an error when creating a product with invalid administrador field (not "true" or "false")', async ({ request }) => {
-        const invalid_administrador = 'yes'; // administrador is not "true" or "false"
-        const incompleteProduct = {
-            nome: faker.commerce.productName(),
-            preco: faker.number.int({ min: 10, max: 1000 }),
-            descricao: faker.commerce.productDescription(),
-            quantidade: faker.number.int({ min: 1, max: 100 }),
-            administrador: invalid_administrador // administrador is invalid
-        };
+
+        const product = getProduct();
+        product.administrador = 'yes'; // administrador is invalid  
+
         const response = await request.post('https://serverest.dev/produtos', {
-            data: incompleteProduct,
+            data: product,
             headers: {
                 'Content-Type': 'application/json',
                 'authorization': authorization
@@ -420,15 +352,12 @@ test.describe('POST /produtos', () => {
     });
 
     test('it should return an error when creating a product with empty required administrador field', async ({ request }) => {
-        const incompleteProduct = {
-            nome: faker.commerce.productName(),
-            preco: faker.number.int({ min: 10, max: 1000 }),
-            descricao: faker.commerce.productDescription(),
-            quantidade: faker.number.int({ min: 1, max: 100 }),
-            administrador: '' // administrador is empty
-        };
+
+        const product = getProduct();
+        product.administrador = ''; // administrador is empty
+
         const response = await request.post('https://serverest.dev/produtos', {
-            data: incompleteProduct,
+            data: product,
             headers: {
                 'Content-Type': 'application/json',
                 'authorization': authorization
@@ -441,12 +370,12 @@ test.describe('POST /produtos', () => {
     });
 
     test('it should return an error when creating a product with all missing required fields', async ({ request }) => {
-        const incompleteProduct = {
+        const product = {
             // All required fields are missing
         };
 
         const response = await request.post('https://serverest.dev/produtos', {
-            data: incompleteProduct,
+            data: product,
             headers: {
                 'Content-Type': 'application/json',
                 'authorization': authorization
@@ -470,15 +399,16 @@ test.describe('POST /produtos', () => {
     });
 
     test('it should return an error when creating a product with all invalid required fields', async ({ request }) => {
-        const invalidProduct = {
-            nome: 123,
-            preco: 'invalid',
-            descricao: 456,
-            quantidade: 'invalid',
-            administrador: 'invalid'
-        };
+
+        const product = getProduct();
+        product.nome = 123;
+        product.preco = 'invalid';
+        product.descricao = 456;
+        product.quantidade = 'invalid';
+        product.administrador = 'invalid';
+
         const response = await request.post('https://serverest.dev/produtos', {
-            data: invalidProduct,
+            data: product,
             headers: {
                 'Content-Type': 'application/json',
                 'authorization': authorization
@@ -500,13 +430,10 @@ test.describe('POST /produtos', () => {
         expect(responseData.administrador).toBe('administrador não é permitido');
     });
 
-    test('it should return an error when the tkoken is missing', async ({ request }) => {
-        const product = {
-            nome: `${faker.commerce.productName()} ${Date.now()}`,
-            preco: faker.number.int({ min: 10, max: 1000 }),
-            descricao: faker.commerce.productDescription(),
-            quantidade: faker.number.int({ min: 1, max: 100 })
-        };
+    test('it should return an error when the token is missing', async ({ request }) => {
+
+        const product = getProduct();
+
         const response = await request.post('https://serverest.dev/produtos', {
             data: product,
             headers: {
@@ -524,12 +451,8 @@ test.describe('POST /produtos', () => {
 
     test('it should return an error when the token is invalid', async ({ request }) => {
         const invalid_token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIn0.SflKxwRJSMeKKF2jWBLfI8T4JdF-P_A6gU3P-XoDq3o';
-        const product = {
-            nome: `${faker.commerce.productName()} ${Date.now()}`,
-            preco: faker.number.int({ min: 10, max: 1000 }),
-            descricao: faker.commerce.productDescription(),
-            quantidade: faker.number.int({ min: 1, max: 100 })
-        };
+
+        const product = getProduct();
         const response = await request.post('https://serverest.dev/produtos', {
             data: product,
             headers: {
@@ -548,12 +471,8 @@ test.describe('POST /produtos', () => {
 
     test('it should return an error when the token is expired', async ({ request }) => {
         const expired_token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImxlbGFuZC5vY29ubmVyQGdtYWlsLmNvbSIsInBhc3N3b3JkIjoic0owUUp5dkxQWkRSZng4IiwiaWF0IjoxNzg1Nzk2ODgxLCJleHAiOjE3ODU3OTc0ODF9.K-57b8Vd3IbCWZUh8qSpb63YqCp1UchJO2sEXyZp7h4';
-        const product = {
-            nome: `${faker.commerce.productName()} ${Date.now()}`,
-            preco: faker.number.int({ min: 10, max: 1000 }),
-            descricao: faker.commerce.productDescription(),
-            quantidade: faker.number.int({ min: 1, max: 100 })
-        };
+        
+        const product = getProduct();// Gerar um produto válido usando a função getProduct()
         const response = await request.post('https://serverest.dev/produtos', {
             data: product,
             headers: {

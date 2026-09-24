@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test'
 import { faker } from '@faker-js/faker'
 
-import { getUser, getUserAdmin } from '../../support/factories/user.js';
+import { getUser } from '../../support/factories/user.js';
 import { getProduct } from '../../support/factories/product.js';
 
 test.describe('POST /carrinhos', () => {
