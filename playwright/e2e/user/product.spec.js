@@ -1126,18 +1126,7 @@ test.describe('DELETE /produtos/:id', () => {
 
     test.beforeAll(async ({ request }) => {
         // 1. Dados do usuário Administrador
-        const firstName = faker.person.firstName();
-        const lastName = faker.person.lastName();
-        const fullName = `${firstName} ${lastName}`;
-        const email = faker.internet.email({ firstName, lastName }).toLowerCase();
-        const password = faker.internet.password();
-
-        const user = {
-            nome: fullName,
-            email: email,
-            password: password,
-            administrador: 'true' // Obrigatório ser string 'true' no ServeRest
-        };
+        const user = getUser();
 
         // 2. Criar usuário admin
         const response = await request.post('https://serverest.dev/usuarios', {
@@ -1148,8 +1137,8 @@ test.describe('DELETE /produtos/:id', () => {
         // 3. Fazer login para capturar o Token
         const loginResponse = await request.post('https://serverest.dev/login', {
             data: {
-                email: email,
-                password: password
+                email: user.email,
+                password: user.password
             }
         });
         expect(loginResponse.ok()).toBeTruthy();
@@ -1157,12 +1146,8 @@ test.describe('DELETE /produtos/:id', () => {
         const loginData = await loginResponse.json();
         authorization = loginData.authorization; // Armazena "Bearer <token>"
 
-        const product = {
-            nome: `${faker.commerce.productName()} ${Date.now()}`,
-            preco: faker.number.int({ min: 10, max: 1000 }),
-            descricao: faker.commerce.productDescription(),
-            quantidade: faker.number.int({ min: 1, max: 100 })
-        };
+        const product = getProduct();
+
         // 4. Criar produto
         const createProductResponse = await request.post('https://serverest.dev/produtos', {
             data: product,
@@ -1183,7 +1168,7 @@ test.describe('DELETE /produtos/:id', () => {
         });
         expect(response.status()).toBe(200);
         const responseData = await response.json();
-        console.log('Response Data:', responseData); // Log para depuração
+        // console.log('Response Data:', responseData); // Log para depuração
         expect(responseData).toHaveProperty('message', 'Registro excluído com sucesso');
     });
 
@@ -1196,7 +1181,7 @@ test.describe('DELETE /produtos/:id', () => {
         });
         expect(response.status()).toBe(405);
         const responseData = await response.json();
-        console.log('Response Data:', responseData); // Log para depuração
+        // console.log('Response Data:', responseData); // Log para depuração
         expect(responseData).toHaveProperty('message', 'Não é possível realizar DELETE em /produtos/. Acesse https://serverest.dev para ver as rotas disponíveis e como utilizá-las.');
     });
 
@@ -1209,7 +1194,7 @@ test.describe('DELETE /produtos/:id', () => {
         });
         expect(response.status()).toBe(400);
         const responseData = await response.json();
-        console.log('Response Data:', responseData); // Log para depuração
+        // console.log('Response Data:', responseData); // Log para depuração
         expect(responseData).toHaveProperty('id', 'id deve ter exatamente 16 caracteres alfanuméricos');
     });
 
@@ -1225,7 +1210,7 @@ test.describe('DELETE /produtos/:id', () => {
 
         expect(response.status()).toBe(400);
         const responseData = await response.json();
-        console.log('Response Data:', responseData); // Log para depuração
+        // console.log('Response Data:', responseData); // Log para depuração
         expect(responseData).toHaveProperty('message', 'Produto não encontrado');
     });
 });
