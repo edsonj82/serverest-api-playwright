@@ -471,7 +471,7 @@ test.describe('POST /produtos', () => {
 
     test('it should return an error when the token is expired', async ({ request }) => {
         const expired_token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImxlbGFuZC5vY29ubmVyQGdtYWlsLmNvbSIsInBhc3N3b3JkIjoic0owUUp5dkxQWkRSZng4IiwiaWF0IjoxNzg1Nzk2ODgxLCJleHAiOjE3ODU3OTc0ODF9.K-57b8Vd3IbCWZUh8qSpb63YqCp1UchJO2sEXyZp7h4';
-        
+
         const product = getProduct();// Gerar um produto válido usando a função getProduct()
         const response = await request.post('https://serverest.dev/produtos', {
             data: product,
@@ -495,18 +495,7 @@ test.describe('GET /produtos', () => {
 
     test.beforeAll(async ({ request }) => {
         // 1. Dados do usuário Administrador
-        const firstName = faker.person.firstName();
-        const lastName = faker.person.lastName();
-        const fullName = `${firstName} ${lastName}`;
-        const email = faker.internet.email({ firstName, lastName }).toLowerCase();
-        const password = faker.internet.password();
-
-        const user = {
-            nome: fullName,
-            email: email,
-            password: password,
-            administrador: 'true' // Obrigatório ser string 'true' no ServeRest
-        };
+        const user = getUser();
 
         // 2. Criar usuário admin
         const response = await request.post('https://serverest.dev/usuarios', {
@@ -517,8 +506,8 @@ test.describe('GET /produtos', () => {
         // 3. Fazer login para capturar o Token
         const loginResponse = await request.post('https://serverest.dev/login', {
             data: {
-                email: email,
-                password: password
+                email: user.email,
+                password: user.password
             }
         });
         expect(loginResponse.ok()).toBeTruthy();
@@ -528,13 +517,8 @@ test.describe('GET /produtos', () => {
     });
 
     test('it should return a list of products', async ({ request }) => {
-        const product = {
-            nome: `${faker.commerce.productName()} ${Date.now()}`,
-            preco: faker.number.int({ min: 10, max: 1000 }),
-            descricao: faker.commerce.productDescription(),
-            quantidade: faker.number.int({ min: 1, max: 100 })
-        };
 
+        const product = getProduct();
         const createResponse = await request.post('https://serverest.dev/produtos', {
             data: product,
             headers: {
@@ -551,7 +535,7 @@ test.describe('GET /produtos', () => {
         });
         expect(response.status()).toBe(200);
         const responseData = await response.json();
-        console.log('Response Data:', responseData); // Log para depuração
+        // console.log('Response Data:', responseData); // Log para depuração
 
         expect(Array.isArray(responseData.produtos)).toBe(true);
 
@@ -567,13 +551,7 @@ test.describe('GET /produtos', () => {
 
     test('it should return a specific product by id', async ({ request }) => {
 
-        const product = {
-            nome: `${faker.commerce.productName()} ${Date.now()}`,
-            preco: faker.number.int({ min: 10, max: 1000 }),
-            descricao: faker.commerce.productDescription(),
-            quantidade: faker.number.int({ min: 1, max: 100 })
-        };
-
+        const product = getProduct();
         const createResponse = await request.post('https://serverest.dev/produtos', {
             data: product,
             headers: {
@@ -595,8 +573,7 @@ test.describe('GET /produtos', () => {
         const responseData = await response.json();
 
         expect(productId).toBe(responseData._id); // Verifica se o ID do produto retornado é o mesmo que o ID do produto criado
-
-        console.log('Response Data:', responseData); // Log para depuração
+        // console.log('Response Data:', responseData); // Log para depuração
 
         expect(responseData).toHaveProperty('_id');
         expect(responseData).toHaveProperty('nome');
@@ -606,12 +583,7 @@ test.describe('GET /produtos', () => {
     });
 
     test('it should return a specific product by nome', async ({ request }) => {
-        const product = {
-            nome: `${faker.commerce.productName()} ${Date.now()}`,
-            preco: faker.number.int({ min: 10, max: 1000 }),
-            descricao: faker.commerce.productDescription(),
-            quantidade: faker.number.int({ min: 1, max: 100 })
-        };
+        const product = getProduct();
 
         const createResponse = await request.post('https://serverest.dev/produtos', {
             data: product,
@@ -619,11 +591,9 @@ test.describe('GET /produtos', () => {
                 'authorization': authorization
             }
         });
-        const productName = product.nome; // Armazena o nome do produto criado para usar na busca   
-
         expect(createResponse.status()).toBe(201);
-        const createdProduct = await createResponse.json();
 
+        const productName = product.nome; // Armazena o nome do produto criado para usar na busca   
         const response = await request.get(`https://serverest.dev/produtos?nome=${productName}`, {
             headers: {
                 'Content-Type': 'application/json',
@@ -635,7 +605,7 @@ test.describe('GET /produtos', () => {
         const responseData = await response.json();
 
         expect(Array.isArray(responseData.produtos)).toBe(true);
-        console.log('Response Data:', responseData); // Log para depuração
+        // console.log('Response Data:', responseData); // Log para depuração
 
         expect(productName).toBe(responseData.produtos[0].nome); // Verifica se o nome do produto retornado é o mesmo que o nome do produto criado
 
@@ -650,23 +620,17 @@ test.describe('GET /produtos', () => {
     });
 
     test('it should return a specific product by preco', async ({ request }) => {
-        const product = {
-            nome: `${faker.commerce.productName()} ${Date.now()}`,
-            preco: faker.number.int({ min: 10, max: 1000 }),
-            descricao: faker.commerce.productDescription(),
-            quantidade: faker.number.int({ min: 1, max: 100 })
-        };
+
+        const product = getProduct();
         const createResponse = await request.post('https://serverest.dev/produtos', {
             data: product,
             headers: {
                 'authorization': authorization
             }
         });
-        const productPrice = product.preco; // Armazena o preço do produto criado para usar na busca   
-
         expect(createResponse.status()).toBe(201);
-        const createdProduct = await createResponse.json();
 
+        const productPrice = product.preco; // Armazena o preço do produto criado para usar na busca   
         const response = await request.get(`https://serverest.dev/produtos?preco=${productPrice}`, {
             headers: {
                 'Content-Type': 'application/json',
@@ -678,7 +642,7 @@ test.describe('GET /produtos', () => {
         const responseData = await response.json();
 
         expect(Array.isArray(responseData.produtos)).toBe(true);
-        console.log('Response Data:', responseData); // Log para depuração
+        // console.log('Response Data:', responseData); // Log para depuração
 
         expect(productPrice).toBe(responseData.produtos[0].preco); // Verifica se o preço do produto retornado é o mesmo que o preço do produto criado
 
@@ -693,23 +657,17 @@ test.describe('GET /produtos', () => {
     });
 
     test('it should return a specific product by descricao', async ({ request }) => {
-        const product = {
-            nome: `${faker.commerce.productName()} ${Date.now()}`,
-            preco: faker.number.int({ min: 10, max: 1000 }),
-            descricao: faker.commerce.productDescription(),
-            quantidade: faker.number.int({ min: 1, max: 100 })
-        };
+
+        const product = getProduct();
         const createResponse = await request.post('https://serverest.dev/produtos', {
             data: product,
             headers: {
                 'authorization': authorization
             }
         });
-        const productDescription = product.descricao; // Armazena a descrição do produto criado para usar na busca
-
         expect(createResponse.status()).toBe(201);
-        const createdProduct = await createResponse.json();
 
+        const productDescription = product.descricao; // Armazena a descrição do produto criado para usar na busca
         const response = await request.get(`https://serverest.dev/produtos?descricao=${productDescription}`, {
             headers: {
                 'Content-Type': 'application/json',
@@ -721,7 +679,7 @@ test.describe('GET /produtos', () => {
         const responseData = await response.json();
 
         expect(Array.isArray(responseData.produtos)).toBe(true);
-        console.log('Response Data:', responseData); // Log para depuração
+        // console.log('Response Data:', responseData); // Log para depuração
 
         expect(productDescription).toBe(responseData.produtos[0].descricao); // Verifica se a descrição do produto retornado é a mesma que a descrição do produto criado
 
@@ -736,23 +694,17 @@ test.describe('GET /produtos', () => {
     });
 
     test('it should return a specific product by quantidade', async ({ request }) => {
-        const product = {
-            nome: faker.commerce.productName(),
-            preco: faker.number.int({ min: 10, max: 1000 }),
-            descricao: faker.commerce.productDescription(),
-            quantidade: faker.number.int({ min: 1, max: 100 })
-        };
+
+        const product = getProduct();
         const createResponse = await request.post('https://serverest.dev/produtos', {
             data: product,
             headers: {
                 'authorization': authorization
             }
         });
-        const productQuantity = product.quantidade; // Armazena a quantidade do produto criado para usar na busca
-
         expect(createResponse.status()).toBe(201);
-        const createdProduct = await createResponse.json();
 
+        const productQuantity = product.quantidade; // Armazena a quantidade do produto criado para usar na busca
         const response = await request.get(`https://serverest.dev/produtos?quantidade=${productQuantity}`, {
             headers: {
                 'Content-Type': 'application/json',
@@ -764,7 +716,7 @@ test.describe('GET /produtos', () => {
         const responseData = await response.json();
 
         expect(Array.isArray(responseData.produtos)).toBe(true);
-        console.log('Response Data:', responseData); // Log para depuração
+        // console.log('Response Data:', responseData); // Log para depuração
 
         expect(productQuantity).toBe(responseData.produtos[0].quantidade); // Verifica se a quantidade do produto retornado é a mesma que a quantidade do produto criado
 
@@ -788,7 +740,7 @@ test.describe('GET /produtos', () => {
         });
         expect(response.status()).toBe(200);
         const responseData = await response.json();
-        console.log('Response Data:', responseData); // Log para depuração  
+        // console.log('Response Data:', responseData); // Log para depuração  
         expect(Array.isArray(responseData.produtos)).toBe(true);
 
         expect(responseData.produtos.length).toBeGreaterThan(0);
@@ -811,7 +763,7 @@ test.describe('GET /produtos', () => {
         });
         expect(response.status()).toBe(200);
         const responseData = await response.json();
-        console.log('Response Data:', responseData); // Log para depuração
+        // console.log('Response Data:', responseData); // Log para depuração
 
         expect(Array.isArray(responseData.produtos)).toBe(true);
 
