@@ -842,7 +842,7 @@ test.describe('GET /produtos/:id', () => {
         expect(createResponse.status()).toBe(200);
         const responseData = await createResponse.json();
 
-        console.log('Response Data:', responseData); // Log para depuração
+        // console.log('Response Data:', responseData); // Log para depuração
 
         expect(responseData).toHaveProperty('_id', produtoId);
         expect(responseData).toHaveProperty('nome');
@@ -859,7 +859,7 @@ test.describe('GET /produtos/:id', () => {
         expect(response.status()).toBe(200);
 
         const responseData = await response.json();
-        console.log('Response Data:', responseData); // Log para depuração
+        // console.log('Response Data:', responseData); // Log para depuração
 
         expect(Array.isArray(responseData.produtos)).toBe(true);
 
@@ -880,7 +880,7 @@ test.describe('GET /produtos/:id', () => {
 
         expect(response.status()).toBe(400);
         const responseData = await response.json();
-        console.log('Response Data:', responseData); // Log para depuração
+        // console.log('Response Data:', responseData); // Log para depuração
         expect(responseData).toHaveProperty('id', 'id deve ter exatamente 16 caracteres alfanuméricos');
     });
 
@@ -891,7 +891,7 @@ test.describe('GET /produtos/:id', () => {
 
         expect(response.status()).toBe(400);
         const responseData = await response.json();
-        console.log('Response Data:', responseData); // Log para depuração
+        // console.log('Response Data:', responseData); // Log para depuração
         expect(responseData).toHaveProperty('message', 'Produto não encontrado');
     });
 
