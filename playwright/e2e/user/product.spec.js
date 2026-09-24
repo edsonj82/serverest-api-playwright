@@ -912,18 +912,7 @@ test.describe('PUT /produtos/:id', () => {
 
     test.beforeAll(async ({ request }) => {
         // 1. Dados do usuário Administrador
-        const firstName = faker.person.firstName();
-        const lastName = faker.person.lastName();
-        const fullName = `${firstName} ${lastName}`;
-        const email = faker.internet.email({ firstName, lastName }).toLowerCase();
-        const password = faker.internet.password();
-
-        const user = {
-            nome: fullName,
-            email: email,
-            password: password,
-            administrador: 'true' // Obrigatório ser string 'true' no ServeRest
-        };
+        const user = getUser();
 
         // 2. Criar usuário admin
         const response = await request.post('https://serverest.dev/usuarios', {
@@ -934,8 +923,8 @@ test.describe('PUT /produtos/:id', () => {
         // 3. Fazer login para capturar o Token
         const loginResponse = await request.post('https://serverest.dev/login', {
             data: {
-                email: email,
-                password: password
+                email: user.email,
+                password: user.password
             }
         });
         expect(loginResponse.ok()).toBeTruthy();
@@ -943,12 +932,8 @@ test.describe('PUT /produtos/:id', () => {
         const loginData = await loginResponse.json();
         authorization = loginData.authorization; // Armazena "Bearer <token>"
 
-        const product = {
-            nome: `${faker.commerce.productName()} ${Date.now()}`,
-            preco: faker.number.int({ min: 10, max: 1000 }),
-            descricao: faker.commerce.productDescription(),
-            quantidade: faker.number.int({ min: 1, max: 100 })
-        };
+        const product = getProduct();
+
         // 4. Criar produto
         const createProductResponse = await request.post('https://serverest.dev/produtos', {
             data: product,
@@ -962,12 +947,9 @@ test.describe('PUT /produtos/:id', () => {
     });
 
     test('it should update a product by id', async ({ request }) => {
-        const updatedProduct = {
-            nome: `${faker.commerce.productName()} ${Date.now()}`,
-            preco: faker.number.int({ min: 10, max: 1000 }),
-            descricao: faker.commerce.productDescription(),
-            quantidade: faker.number.int({ min: 1, max: 100 })
-        };
+
+        const updatedProduct = getProduct();
+        updatedProduct.nome = `${faker.commerce.productName()} ${Date.now()}`;
 
         const response = await request.put(`https://serverest.dev/produtos/${productId}`, {
             data: updatedProduct,
@@ -977,19 +959,16 @@ test.describe('PUT /produtos/:id', () => {
         });
         expect(response.status()).toBe(200);
         const responseData = await response.json();
-        console.log('Response Data:', responseData); // Log para depuração
+        // console.log('Response Data:', responseData); // Log para depuração
 
         expect(responseData).toHaveProperty('message', 'Registro alterado com sucesso');
     });
 
     test('it should return an error when updating a product with invalid id', async ({ request }) => {
         const invalidProductId = 'invalid-id';
-        const updatedProduct = {
-            nome: `${faker.commerce.productName()} ${Date.now()}`,
-            preco: faker.number.int({ min: 10, max: 1000 }),
-            descricao: faker.commerce.productDescription(),
-            quantidade: faker.number.int({ min: 1, max: 100 })
-        };
+
+        const updatedProduct = getProduct();
+        updatedProduct.nome = `${faker.commerce.productName()} ${Date.now()}`;
 
         const response = await request.put(`https://serverest.dev/produtos/${invalidProductId}`, {
             data: updatedProduct,
@@ -999,18 +978,15 @@ test.describe('PUT /produtos/:id', () => {
         });
         expect(response.status()).toBe(400);
         const responseData = await response.json();
-        console.log('Response Data:', responseData); // Log para depuração
+        // console.log('Response Data:', responseData); // Log para depuração
         expect(responseData).toHaveProperty('id', 'id deve ter exatamente 16 caracteres alfanuméricos');
     });
 
     test('it should return an error when updating a product with non-existent id', async ({ request }) => {
         const nonExistentProductId = '1234567890123456';
-        const updatedProduct = {
-            nome: `${faker.commerce.productName()} ${Date.now()}`,
-            preco: faker.number.int({ min: 10, max: 1000 }),
-            descricao: faker.commerce.productDescription(),
-            quantidade: faker.number.int({ min: 1, max: 100 })
-        };
+
+        const updatedProduct = getProduct();
+        updatedProduct.nome = `${faker.commerce.productName()} ${Date.now()}`;
 
         const response = await request.put(`https://serverest.dev/produtos/${nonExistentProductId}`, {
             data: updatedProduct,
@@ -1029,12 +1005,9 @@ test.describe('PUT /produtos/:id', () => {
     });
 
     test('it should return an error when updating a product when nome has more than 124 characters', async ({ request }) => {
-        const invalidProduct = {
-            nome: 'a'.repeat(125), // nome with 125 characters
-            preco: faker.number.int({ min: 10, max: 1000 }),
-            descricao: faker.commerce.productDescription(),
-            quantidade: faker.number.int({ min: 1, max: 100 })
-        };
+
+        const invalidProduct = getProduct();
+        invalidProduct.nome = 'a'.repeat(125); // nome with 125 characters
 
         const response = await request.put(`https://serverest.dev/produtos/${productId}`, {
             data: invalidProduct,
@@ -1047,17 +1020,14 @@ test.describe('PUT /produtos/:id', () => {
 
         expect(response.status()).toBe(400);
         const responseData = await response.json();
-        console.log('Response Data:', responseData); // Log para depuração
+        // console.log('Response Data:', responseData); // Log para depuração
         expect(responseData).toHaveProperty('message', 'Alguns campos são obrigatórios');
     });
 
     test('it should return an error when updating a product when preco is negative', async ({ request }) => {
-        const invalidProduct = {
-            nome: faker.commerce.productName(),
-            preco: -10, // preco is negative
-            descricao: faker.commerce.productDescription(),
-            quantidade: faker.number.int({ min: 1, max: 100 })
-        };
+
+        const invalidProduct = getProduct();
+        invalidProduct.preco = -10; // preco is negative
 
         const response = await request.put(`https://serverest.dev/produtos/${productId}`, {
             data: invalidProduct,
@@ -1067,17 +1037,14 @@ test.describe('PUT /produtos/:id', () => {
         });
         expect(response.status()).toBe(400);
         const responseData = await response.json();
-        console.log('Response Data:', responseData); // Log para depuração
+        // console.log('Response Data:', responseData); // Log para depuração
         expect(responseData).toHaveProperty('preco', 'preco deve ser um número positivo');
     });
 
     test('it should return an error when updating a product when quantidade is negative', async ({ request }) => {
-        const invalidProduct = {
-            nome: faker.commerce.productName(),
-            preco: faker.number.int({ min: 10, max: 1000 }),
-            descricao: faker.commerce.productDescription(),
-            quantidade: -5 // quantidade is negative
-        };
+
+        const invalidProduct = getProduct();
+        invalidProduct.quantidade = -5; // quantidade is negative
 
         const response = await request.put(`https://serverest.dev/produtos/${productId}`, {
             data: invalidProduct,
@@ -1087,17 +1054,13 @@ test.describe('PUT /produtos/:id', () => {
         });
         expect(response.status()).toBe(400);
         const responseData = await response.json();
-        console.log('Response Data:', responseData); // Log para depuração
+        // console.log('Response Data:', responseData); // Log para depuração
         expect(responseData).toHaveProperty('quantidade', 'quantidade deve ser maior ou igual a 0');
     });
 
     test('it should return an error when token is missing', async ({ request }) => {
-        const updatedProduct = {
-            nome: faker.commerce.productName(),
-            preco: faker.number.int({ min: 10, max: 1000 }),
-            descricao: faker.commerce.productDescription(),
-            quantidade: faker.number.int({ min: 1, max: 100 })
-        };
+
+        const updatedProduct = getProduct();
         const response = await request.put(`https://serverest.dev/produtos/${productId}`, {
             data: updatedProduct,
             headers: {
@@ -1106,19 +1069,14 @@ test.describe('PUT /produtos/:id', () => {
         });
         expect(response.status()).toBe(401);
         const responseData = await response.json();
-        console.log('Response Data:', responseData); // Log para depuração
+        // console.log('Response Data:', responseData); // Log para depuração
         expect(responseData).toHaveProperty('message', 'Token de acesso ausente, inválido, expirado ou usuário do token não existe mais');
     });
 
     test('it should return an error when token is invalid', async ({ request }) => {
         const invalid_token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIn0.SflKxwRJSMeKKF2jWBLfI8T4JdF-P_A6gU3P-XoDq3o';
-        const updatedProduct = {
-            nome: faker.commerce.productName(),
-            preco: faker.number.int({ min: 10, max: 1000 }),
-            descricao: faker.commerce.productDescription(),
-            quantidade: faker.number.int({ min: 1, max: 100 })
-        };
 
+        const updatedProduct = getProduct();
         const response = await request.put(`https://serverest.dev/produtos/${productId}`, {
             data: updatedProduct,
             headers: {
@@ -1127,19 +1085,14 @@ test.describe('PUT /produtos/:id', () => {
         });
         expect(response.status()).toBe(401);
         const responseData = await response.json();
-        console.log('Response Data:', responseData); // Log para depuração
+        // console.log('Response Data:', responseData); // Log para depuração
         expect(responseData).toHaveProperty('message', 'Token de acesso ausente, inválido, expirado ou usuário do token não existe mais');
     });
 
     test('it should return an error when token is expired', async ({ request }) => {
         const expired_token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImxlbGFuZC5vY29ubmVyQGdtYWlsLmNvbSIsInBhc3N3b3JkIjoic0owUUp5dkxQWkRSZng4IiwiaWF0IjoxNzg1Nzk2ODgxLCJleHAiOjE3ODU3OTc0ODF9.K-57b8Vd3IbCWZUh8qSpb63YqCp1UchJO2sEXyZp7h4';
-        const updatedProduct = {
-            nome: faker.commerce.productName(),
-            preco: faker.number.int({ min: 10, max: 1000 }),
-            descricao: faker.commerce.productDescription(),
-            quantidade: faker.number.int({ min: 1, max: 100 })
-        };
 
+        const updatedProduct = getProduct();
         const response = await request.put(`https://serverest.dev/produtos/${productId}`, {
             data: updatedProduct,
             headers: {
@@ -1148,17 +1101,13 @@ test.describe('PUT /produtos/:id', () => {
         });
         expect(response.status()).toBe(401);
         const responseData = await response.json();
-        console.log('Response Data:', responseData); // Log para depuração
+        // console.log('Response Data:', responseData); // Log para depuração
         expect(responseData).toHaveProperty('message', 'Token de acesso ausente, inválido, expirado ou usuário do token não existe mais');
     });
 
     test('it should return an error when the url is invalid', async ({ request }) => {
-        const updatedProduct = {
-            nome: faker.commerce.productName(),
-            preco: faker.number.int({ min: 10, max: 1000 }),
-            descricao: faker.commerce.productDescription(),
-            quantidade: faker.number.int({ min: 1, max: 100 })
-        };
+
+        const updatedProduct = getProduct();
         const response = await request.put(`https://serverest.dev/produtos/invalid-url`, {
             data: updatedProduct,
             headers: {
