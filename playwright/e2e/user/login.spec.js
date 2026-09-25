@@ -1,23 +1,14 @@
 import { test, expect } from '@playwright/test';
 import { faker } from '@faker-js/faker';
+import { getUser } from '../../support/factories/user.js';
 
 test.describe('POST /login', () => {
 
-    let userId, email, password, authorization;
+    let userId, authorization;
 
     test('it should log in successfully with valid credentials', async ({ request }) => {
-        const firstName = faker.person.firstName();
-        const lastName = faker.person.lastName();
-        const fullName = `${firstName} ${lastName}`;
-        email = faker.internet.email(firstName, lastName);
-        password = faker.internet.password();
-
-        const user = {
-            nome: fullName,
-            email: email,
-            password: password,
-            administrador: 'false'
-        };
+        const user = getUser();
+        user.administrador = 'false';
 
         const response = await request.post('https://serverest.dev/usuarios', {
             data: user
@@ -26,13 +17,11 @@ test.describe('POST /login', () => {
         expect(response.ok()).toBeTruthy();
 
         userId = (await response.json())._id;
-        email = user.email;
-        password = user.password;
 
         const loginResponse = await request.post('https://serverest.dev/login', {
             data: {
-                email: email,
-                password: password
+                email: user.email,
+                password: user.password
             }
         });
 
@@ -113,18 +102,8 @@ test.describe('POST /login', () => {
 
     test('it should log in successfully with valid credentials and then log out', async ({ request }) => {
 
-        const firstName = faker.person.firstName();
-        const lastName = faker.person.lastName();
-        const fullName = `${firstName} ${lastName}`;
-        email = faker.internet.email(firstName, lastName);
-        password = faker.internet.password();
-
-        const user = {
-            nome: fullName,
-            email: email,
-            password: password,
-            administrador: 'false'
-        };
+        const user = getUser();
+        user.administrador = 'false';
 
         const response = await request.post('https://serverest.dev/usuarios', {
             data: user
@@ -133,13 +112,10 @@ test.describe('POST /login', () => {
         // expect(response.ok()).toBeTruthy();
         expect(response.status()).toBe(201);
 
-        email = user.email;
-        password = user.password;
-
         const loginResponse = await request.post('https://serverest.dev/login', {
             data: {
-                email: email,
-                password: password
+                email: user.email,
+                password: user.password
             }
         });
 
@@ -171,18 +147,9 @@ test.describe('POST /login', () => {
     });
 
     test('it should fail to log in with a deleted user', async ({ request }) => {
-        const firstName = faker.person.firstName();
-        const lastName = faker.person.lastName();
-        const fullName = `${firstName} ${lastName}`;
-        email = faker.internet.email(firstName, lastName);
-        password = faker.internet.password();
 
-        const user = {
-            nome: fullName,
-            email: email,
-            password: password,
-            administrador: 'false'
-        };
+        const user = getUser();
+        user.administrador = 'false';
 
         const response = await request.post('https://serverest.dev/usuarios', {
             data: user
@@ -204,8 +171,8 @@ test.describe('POST /login', () => {
         // Now, try to log in with the deleted user
         const loginResponse = await request.post('https://serverest.dev/login', {
             data: {
-                email: email,
-                password: password
+                email: user.email,
+                password: user.password
             }
         });
 
@@ -213,7 +180,7 @@ test.describe('POST /login', () => {
         expect(loginResponse.status()).toBe(401);
 
         const loginData = await loginResponse.json();
-        expect(loginData).toHaveProperty('message','Email e/ou senha inválidos');
+        expect(loginData).toHaveProperty('message', 'Email e/ou senha inválidos');
 
     });
 
@@ -237,18 +204,9 @@ test.describe('POST /login', () => {
     });
 
     test('it should fail to log in with a user that has been deactivated', async ({ request }) => {
-        const firstName = faker.person.firstName();
-        const lastName = faker.person.lastName();
-        const fullName = `${firstName} ${lastName}`;
-        email = faker.internet.email(firstName, lastName);
-        password = faker.internet.password();
 
-        const user = {
-            nome: fullName,
-            email: email,
-            password: password,
-            administrador: 'false'
-        };
+        const user = getUser();
+        user.administrador = 'false';
 
         const response = await request.post('https://serverest.dev/usuarios', {
             data: user
