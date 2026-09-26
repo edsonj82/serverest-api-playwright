@@ -1,7 +1,7 @@
 // @ts-check
 import { test, expect } from '@playwright/test';
-
 import { getUser } from '../../support/factories/user.js';
+import { userService } from '../../support/services/user.js';
 
 //User API tests
 test.describe('POST /usuarios', () => {
@@ -16,39 +16,31 @@ test.describe('POST /usuarios', () => {
     ];
 
     test('it should create a new user', async ({ request }) => {
-
         const user = getUser();
         user.administrador = 'false';
 
-        const response = await request.post('https://serverest.dev/usuarios', {
-            data: user
-        });
+        const userServiceInstance = userService(request);
+        const response = await userServiceInstance.createUser(user);
 
         expect(response.status()).toBe(201);
 
         const responseBody = await response.json();
-
         expect(responseBody).toHaveProperty('_id');
         expect(responseBody).not.toHaveProperty('password');
         expect(responseBody).not.toHaveProperty('administrador');
-
         expect(responseBody).toHaveProperty('message', 'Cadastro realizado com sucesso');
 
     });
 
     test('it should not create a duplicate user', async ({ request }) => {
-
         const user = getUser();
         user.administrador = 'false';
 
-        const response = await request.post('https://serverest.dev/usuarios', {
-            data: user
-        });
+        const userServiceInstance = userService(request);
+        const response = await userServiceInstance.createUser(user);
 
         expect(response.status()).toBe(201);
-
         const responseBody = await response.json();
-
         expect(responseBody).toHaveProperty('message', 'Cadastro realizado com sucesso');
         expect(responseBody).toHaveProperty('_id');
         expect(responseBody).not.toHaveProperty('password');
@@ -56,31 +48,20 @@ test.describe('POST /usuarios', () => {
 
         const email = user.email; // Guardamos o email do usuário criado para tentar criar um duplicado
 
-        // Tentamos criar um usuário com o mesmo email
-        const duplicateResponse = await request.post('https://serverest.dev/usuarios', {
-            data: {
-                nome: user.nome,
-                email: email,
-                password: user.password,
-                administrador: user.administrador
-            }
-        });
-
+        const duplicateResponse = await userServiceInstance.createUser(user);
         expect(duplicateResponse.status()).toBe(400);
 
         const duplicateResponseBody = await duplicateResponse.json();
+        // console.log('Duplicate response body:', duplicateResponseBody);
         expect(duplicateResponseBody).toHaveProperty('message', 'Este email já está sendo usado');
     });
 
     test('name field should not be empty', async ({ request }) => {
-
         const user = getUser();
         user.nome = "";
 
-        const response = await request.post('https://serverest.dev/usuarios', {
-            data: user
-        });
-
+        const userServiceInstance = userService(request);
+        const response = await userServiceInstance.createUser(user);
         expect(response.status()).toBe(400);
 
         const responseBody = await response.json();
@@ -89,33 +70,26 @@ test.describe('POST /usuarios', () => {
     });
 
     test('name field is required', async ({ request }) => {
-
         const user = getUser();
         user.administrador = 'false';
-
         delete user.nome;
 
-        const response = await request.post('https://serverest.dev/usuarios', {
-            data: user
-        });
-
+        const userServiceInstance = userService(request);
+        const response = await userServiceInstance.createUser(user);
         expect(response.status()).toBe(400);
 
         const responseBody = await response.json();
-        console.log('Response body:', responseBody); // Adicione esta linha para depuração
+        // console.log('Response body:', responseBody); // Adicione esta linha para depuração
         expect(responseBody).toHaveProperty('nome', 'nome é obrigatório');
     });
 
     test('email field should not be empty', async ({ request }) => {
-
         const user = getUser();
         user.administrador = 'false';
         user.email = "";
 
-        const response = await request.post('https://serverest.dev/usuarios', {
-            data: user
-        });
-
+        const userServiceInstance = userService(request);
+        const response = await userServiceInstance.createUser(user);
         expect(response.status()).toBe(400);
 
         const responseBody = await response.json();
@@ -124,15 +98,12 @@ test.describe('POST /usuarios', () => {
     });
 
     test('email field should be valid', async ({ request }) => {
-
         const user = getUser();
         user.administrador = 'false';
         user.email = "invalid-email";
 
-        const response = await request.post('https://serverest.dev/usuarios', {
-            data: user
-        });
-
+        const userServiceInstance = userService(request);
+        const response = await userServiceInstance.createUser(user);
         expect(response.status()).toBe(400);
 
         const responseBody = await response.json();
@@ -145,10 +116,8 @@ test.describe('POST /usuarios', () => {
         user.administrador = 'false';
         delete user.email;
 
-        const response = await request.post('https://serverest.dev/usuarios', {
-            data: user
-        });
-
+        const userServiceInstance = userService(request);
+        const response = await userServiceInstance.createUser(user);
         expect(response.status()).toBe(400);
 
         const responseBody = await response.json();
@@ -158,15 +127,12 @@ test.describe('POST /usuarios', () => {
 
     invalidEmailScenarios.forEach(({ email, reason }) => {// Iteramos criando um teste para cada cenário
         test(`should reject invalid email: ${reason} ('${email}')`, async ({ request }) => {
-
             const user = getUser();
             user.administrador = 'false';
             user.email = email;
 
-            const response = await request.post('https://serverest.dev/usuarios', {
-                data: user
-            });
-
+            const userServiceInstance = userService(request);
+            const response = await userServiceInstance.createUser(user);
             expect(response.status()).toBe(400);
 
             const responseBody = await response.json();
@@ -174,7 +140,6 @@ test.describe('POST /usuarios', () => {
             // a API do ServeRest costuma retornar a mensagem no campo correspondente
             if (email === '') {
                 expect(responseBody).toHaveProperty('email', 'email não pode ficar em branco')
-
             } else {
                 expect(responseBody).toHaveProperty('email', 'email deve ser um email válido')
             }
@@ -182,15 +147,12 @@ test.describe('POST /usuarios', () => {
     });
 
     test('password field should not be empty', async ({ request }) => {
-
         const user = getUser();
         user.administrador = 'false';
         user.password = '';
 
-        const response = await request.post('https://serverest.dev/usuarios', {
-            data: user
-        });
-
+        const userServiceInstance = userService(request);
+        const response = await userServiceInstance.createUser(user);
         expect(response.status()).toBe(400);
 
         const responseBody = await response.json();
@@ -199,15 +161,12 @@ test.describe('POST /usuarios', () => {
     });
 
     test('password field is required', async ({ request }) => {
-
         const user = getUser();
         user.administrador = 'false';
         delete user.password;
 
-        const response = await request.post('https://serverest.dev/usuarios', {
-            data: user
-        });
-
+        const userServiceInstance = userService(request);
+        const response = await userServiceInstance.createUser(user);
         expect(response.status()).toBe(400);
 
         const responseBody = await response.json();
@@ -216,14 +175,11 @@ test.describe('POST /usuarios', () => {
     });
 
     test('administrador field should be "true" or "false"', async ({ request }) => {
-
         const user = getUser();
         user.administrador = '';
 
-        const response = await request.post('https://serverest.dev/usuarios', {
-            data: user
-        });
-
+        const userServiceInstance = userService(request);
+        const response = await userServiceInstance.createUser(user);
         expect(response.status()).toBe(400);
 
         const responseBody = await response.json();
@@ -232,19 +188,15 @@ test.describe('POST /usuarios', () => {
     });
 
     test('administrador field is required', async ({ request }) => {
-
         const user = getUser();
         delete user.administrador;
 
-
-        const response = await request.post('https://serverest.dev/usuarios', {
-            data: user
-        });
-
+        const userServiceInstance = userService(request);
+        const response = await userServiceInstance.createUser(user);
         expect(response.status()).toBe(400);
 
         const responseBody = await response.json();
-        // console.log('Response body:', responseBody); // Adicione esta linha para depuração
+        console.log('Response body:', responseBody); // Adicione esta linha para depuração
         expect(responseBody).toHaveProperty('administrador', 'administrador é obrigatório');
     });
 
