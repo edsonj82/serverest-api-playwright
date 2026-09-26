@@ -5,6 +5,10 @@ import { userService } from '../../support/services/user.js';
 
 //User API tests
 test.describe('POST /usuarios', () => {
+    let userServiceInstance;
+    test.beforeEach(async ({ request }) => {
+        userServiceInstance = userService(request);
+    });
 
     const invalidEmailScenarios = [// Matriz de cenários (Scenario Outline / Data Table)
         { email: 'email-without-at.com', reason: 'missing @ symbol' },
@@ -19,7 +23,7 @@ test.describe('POST /usuarios', () => {
         const user = getUser();
         user.administrador = 'false';
 
-        const userServiceInstance = userService(request);
+        // const userServiceInstance = userService(request);
         const response = await userServiceInstance.createUser(user);
 
         expect(response.status()).toBe(201);
@@ -36,7 +40,7 @@ test.describe('POST /usuarios', () => {
         const user = getUser();
         user.administrador = 'false';
 
-        const userServiceInstance = userService(request);
+        // const userServiceInstance = userService(request);
         const response = await userServiceInstance.createUser(user);
 
         expect(response.status()).toBe(201);
@@ -60,7 +64,7 @@ test.describe('POST /usuarios', () => {
         const user = getUser();
         user.nome = "";
 
-        const userServiceInstance = userService(request);
+        // const userServiceInstance = userService(request);
         const response = await userServiceInstance.createUser(user);
         expect(response.status()).toBe(400);
 
@@ -88,7 +92,7 @@ test.describe('POST /usuarios', () => {
         user.administrador = 'false';
         user.email = "";
 
-        const userServiceInstance = userService(request);
+        // const userServiceInstance = userService(request);
         const response = await userServiceInstance.createUser(user);
         expect(response.status()).toBe(400);
 
@@ -102,7 +106,7 @@ test.describe('POST /usuarios', () => {
         user.administrador = 'false';
         user.email = "invalid-email";
 
-        const userServiceInstance = userService(request);
+        // const userServiceInstance = userService(request);
         const response = await userServiceInstance.createUser(user);
         expect(response.status()).toBe(400);
 
@@ -116,7 +120,7 @@ test.describe('POST /usuarios', () => {
         user.administrador = 'false';
         delete user.email;
 
-        const userServiceInstance = userService(request);
+        // const userServiceInstance = userService(request);
         const response = await userServiceInstance.createUser(user);
         expect(response.status()).toBe(400);
 
@@ -131,7 +135,7 @@ test.describe('POST /usuarios', () => {
             user.administrador = 'false';
             user.email = email;
 
-            const userServiceInstance = userService(request);
+            // const userServiceInstance = userService(request);
             const response = await userServiceInstance.createUser(user);
             expect(response.status()).toBe(400);
 
@@ -151,7 +155,7 @@ test.describe('POST /usuarios', () => {
         user.administrador = 'false';
         user.password = '';
 
-        const userServiceInstance = userService(request);
+        // const userServiceInstance = userService(request);
         const response = await userServiceInstance.createUser(user);
         expect(response.status()).toBe(400);
 
@@ -165,7 +169,7 @@ test.describe('POST /usuarios', () => {
         user.administrador = 'false';
         delete user.password;
 
-        const userServiceInstance = userService(request);
+        // const userServiceInstance = userService(request);
         const response = await userServiceInstance.createUser(user);
         expect(response.status()).toBe(400);
 
@@ -178,7 +182,7 @@ test.describe('POST /usuarios', () => {
         const user = getUser();
         user.administrador = '';
 
-        const userServiceInstance = userService(request);
+        // const userServiceInstance = userService(request);
         const response = await userServiceInstance.createUser(user);
         expect(response.status()).toBe(400);
 
@@ -191,7 +195,7 @@ test.describe('POST /usuarios', () => {
         const user = getUser();
         delete user.administrador;
 
-        const userServiceInstance = userService(request);
+        // const userServiceInstance = userService(request);
         const response = await userServiceInstance.createUser(user);
         expect(response.status()).toBe(400);
 
