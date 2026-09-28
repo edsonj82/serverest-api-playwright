@@ -1,7 +1,9 @@
 // @ts-check
 import { test, expect } from '@playwright/test';
 import { getUser } from '../../support/factories/user.js';
-import { postUserService } from '../../support/services/user.js';
+
+import { postUserService, getUserService } from '../../support/services/user.js';
+
 
 //User API tests
 test.describe('POST /usuarios', () => {
@@ -231,16 +233,17 @@ test.describe('POST /usuarios', () => {
 });
 
 test.describe('GET /usuarios', () => {
-    //GET
+    let userServiceInstance;
+    test.beforeEach(({ request }) => {
+        userServiceInstance = getUserService(request);
+    });
+
     test('it should show list of registered users', async ({ request }) => {
-
-        const response = await request.get('https://serverest.dev/usuarios');
-
+        const response = await userServiceInstance.getUsers();
         expect(response.status()).toBe(200);
 
         const body = await response.json();
         expect(body.quantidade).toBeGreaterThan(0); // Garantimos que a lista não está vazia (maior que 0)
-
         body.usuarios.forEach(user => {//Iteramos por todos os usuários para validar a estrutura dos dados
             expect(user).toHaveProperty('nome');
             expect(user).toHaveProperty('email');
