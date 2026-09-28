@@ -1,4 +1,4 @@
-export const getUserService = (request) => {
+export const postUserService = (request) => {
     const createUser = async (user) => {
         return await request.post('https://serverest.dev/usuarios', {
             data: user

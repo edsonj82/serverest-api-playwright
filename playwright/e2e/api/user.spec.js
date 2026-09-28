@@ -1,13 +1,13 @@
 // @ts-check
 import { test, expect } from '@playwright/test';
 import { getUser } from '../../support/factories/user.js';
-import { getUserService } from '../../support/services/user.js';
+import { postUserService } from '../../support/services/user.js';
 
 //User API tests
 test.describe('POST /usuarios', () => {
     let userServiceInstance;
     test.beforeEach(async ({ request }) => {
-        userServiceInstance = getUserService(request);
+        userServiceInstance = postUserService(request);
     });
 
     const invalidEmailScenarios = [// Matriz de cenários (Scenario Outline / Data Table)
