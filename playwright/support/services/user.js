@@ -1,4 +1,4 @@
-export const userService = (request) => {
+export const getUserService = (request) => {
     const createUser = async (user) => {
         return await request.post('https://serverest.dev/usuarios', {
             data: user
@@ -7,7 +7,6 @@ export const userService = (request) => {
     return {
         createUser
     }
-
 }
 
 // module.exports = userService

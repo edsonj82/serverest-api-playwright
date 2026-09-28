@@ -1,13 +1,13 @@
 // @ts-check
 import { test, expect } from '@playwright/test';
 import { getUser } from '../../support/factories/user.js';
-import { userService } from '../../support/services/user.js';
+import { getUserService } from '../../support/services/user.js';
 
 //User API tests
 test.describe('POST /usuarios', () => {
     let userServiceInstance;
     test.beforeEach(async ({ request }) => {
-        userServiceInstance = userService(request);
+        userServiceInstance = getUserService(request);
     });
 
     const invalidEmailScenarios = [// Matriz de cenários (Scenario Outline / Data Table)
@@ -195,7 +195,7 @@ test.describe('POST /usuarios', () => {
         const user = getUser();
         delete user.administrador;
 
-        // const userServiceInstance = userService(request);
+        const userServiceInstance = userService(request);
         const response = await userServiceInstance.createUser(user);
         expect(response.status()).toBe(400);
 
