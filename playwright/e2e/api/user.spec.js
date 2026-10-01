@@ -319,8 +319,13 @@ test.describe('GET /usuarios', () => {
 });
 
 test.describe('GET /usuarios/{id}', () => {
-
     let userId, nome, email, password, administrador;// 1. Declaramos a variável vazia no escopo do describe
+
+    let userServiceInstance;
+    test.beforeEach(({ request }) => {
+        userServiceInstance = getUserService(request);
+    });
+
 
     test('it should show user details by ID', async ({ request }) => {
 
@@ -340,7 +345,8 @@ test.describe('GET /usuarios/{id}', () => {
         password = user.password;
         administrador = user.administrador;
 
-        const userResponse = await request.get(`https://serverest.dev/usuarios/${userId}`);
+        // const userResponse = await request.get(`https://serverest.dev/usuarios/${userId}`);
+        const userResponse = await userServiceInstance.getUserById(userId);
 
         expect(userResponse.status()).toBe(200);
 

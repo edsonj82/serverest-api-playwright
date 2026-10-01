@@ -17,8 +17,13 @@ export const getUserService = (request) => {
         return await request.get(`https://serverest.dev/usuarios`, {
         });
     }
+    const getUserById = async (id) => {
+        return await request.get(`https://serverest.dev/usuarios/${id}`, {
+        });
+    }
     return {
-        getUsers
+        getUsers,
+        getUserById
     };
 };
 
