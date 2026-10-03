@@ -508,11 +508,7 @@ test.describe('PUT /usuarios/{id}', () => {
         // console.log('Update first name:', updateFirstName);
         // console.log('Update last name:', updateLastName);
 
-        // const updateResponse = await request.put(`https://serverest.dev/usuarios/${userId}`, {
-        //     data: updateData
-        // });
         const updateResponse = await userServiceInstance.updateUser(userId, updateData);
-
         if (firstName !== updateFirstName || lastName !== updateLastName) {
             // console.log('User name has been updated.');
             expect(updateResponse.status()).toBe(200);
@@ -538,28 +534,20 @@ test.describe('PUT /usuarios/{id}', () => {
         const user = getUser();
         user.administrador = 'false';
 
-        const createResponse = await request.put(`https://serverest.dev/usuarios/${nonExistentUserId}`, {
-            data: user
-        });
-
+        const createResponse = await userServiceInstance.updateUser(nonExistentUserId, user);
         expect(createResponse.status()).toBe(201);
 
         const createResponseBody = await createResponse.json();
         expect(createResponseBody).toHaveProperty('message', 'Cadastro realizado com sucesso');
         expect(createResponseBody).toHaveProperty('_id');
-
         // console.log('Create response body:', createResponseBody); // Adicione esta linha para depuração
     });
 
     test('it should not create a duplicate user', async ({ request }) => {
-
         const user = getUser();
         user.administrador = 'false';
 
-        const response = await request.post('https://serverest.dev/usuarios', {
-            data: user
-        });
-
+        const response = await userServiceInstance.createUser(user);
         expect(response.status()).toBe(201);
 
         const responseBody = await response.json();
@@ -570,13 +558,11 @@ test.describe('PUT /usuarios/{id}', () => {
         expect(responseBody).not.toHaveProperty('administrador');
 
         const newFakeId = '0000000000000000';
-        const duplicateResponse = await request.put(`https://serverest.dev/usuarios/${newFakeId}`, {// Tentamos criar um usuário com o mesmo email
-            data: {
-                nome: user.nome,
-                email: user.email,
-                password: user.password,
-                administrador: user.administrador
-            }
+        const duplicateResponse = await userServiceInstance.updateUser(newFakeId, {// Tentamos criar um usuário com o mesmo email
+            nome: user.nome,
+            email: user.email,
+            password: user.password,
+            administrador: user.administrador
         });
 
         expect(duplicateResponse.status()).toBe(400);
