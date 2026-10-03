@@ -226,7 +226,7 @@ test.describe('POST /usuarios', () => {
 test.describe('GET /usuarios', () => {
     let userServiceInstance;
     test.beforeEach(({ request }) => {
-        userServiceInstance = getUserService(request);
+        userServiceInstance = userService(request);
     });
 
     test('it should show list of registered users', async ({ request }) => {
