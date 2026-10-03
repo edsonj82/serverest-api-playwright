@@ -14,11 +14,17 @@ export const userService = (request) => {
         return await request.get(`https://serverest.dev/usuarios/${id}`, {
         });
     };
+    const updateUser = async (userId, updateData) => {
+        return await request.put(`https://serverest.dev/usuarios/${userId}`, {
+            data: updateData
+        });
+    };
 
     return {
         createUser,
         getUsers,
-        getUserById
+        getUserById,
+        updateUser
     };
 };
 

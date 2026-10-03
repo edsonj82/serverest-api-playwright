@@ -309,7 +309,7 @@ test.describe('GET /usuarios', () => {
     });
 });
 
-test.describe('GET /usuarios/{id}', () => {
+test.describe('GET /usuarios/:id', () => {
     let userId, nome, email, password, administrador;// 1. Declaramos a variável vazia no escopo do describe
 
     let userServiceInstance;
@@ -442,7 +442,7 @@ test.describe('GET /usuarios/{id}', () => {
         const nullId = null;
         const response = await request.get(`https://serverest.dev/usuarios/${nullId}`);
         expect(response.status()).toBe(400);
-        
+
         const responseBody = await response.json();
         expect(responseBody).toHaveProperty('id', 'id deve ter exatamente 16 caracteres alfanuméricos')
     });
@@ -451,7 +451,7 @@ test.describe('GET /usuarios/{id}', () => {
         const undefinedId = undefined;
         const response = await request.get(`https://serverest.dev/usuarios/${undefinedId}`);
         expect(response.status()).toBe(400);
-        
+
         const responseBody = await response.json();
         expect(responseBody).toHaveProperty('id', 'id deve ter exatamente 16 caracteres alfanuméricos')
     });
@@ -460,7 +460,7 @@ test.describe('GET /usuarios/{id}', () => {
         const booleanId = true;
         const response = await request.get(`https://serverest.dev/usuarios/${booleanId}`);
         expect(response.status()).toBe(400);
-        
+
         const responseBody = await response.json();
         expect(responseBody).toHaveProperty('id', 'id deve ter exatamente 16 caracteres alfanuméricos')
     });
@@ -469,7 +469,7 @@ test.describe('GET /usuarios/{id}', () => {
         const arrayId = ['1234567890123456'];
         const response = await request.get(`https://serverest.dev/usuarios/${arrayId}`);
         expect(response.status()).toBe(400);
-        
+
         const responseBody = await response.json();
         // Marca o teste como "fixme" apontando o ID do bug/card
         test.fixme(true, 'BUG: API returning 400 with non-array user ID');
@@ -478,10 +478,12 @@ test.describe('GET /usuarios/{id}', () => {
 });
 
 test.describe('PUT /usuarios/{id}', () => {
-    let userId;
+    let userId, userServiceInstance;
+    test.beforeEach(async ({ request }) => {
+        userServiceInstance = userService(request);
+    });
 
     test('it should update user details by ID', async ({ request }) => {
-
         const user = getUser();
         const { nome: fullName } = user;
         user.administrador = 'false';
@@ -490,10 +492,10 @@ test.describe('PUT /usuarios/{id}', () => {
         // console.log('First name:', firstName);
         // console.log('Last name:', lastName);
 
-        const createResponse = await request.post('https://serverest.dev/usuarios', {
-            data: user
-        });
-
+        // const createResponse = await request.post('https://serverest.dev/usuarios', {
+        //     data: user
+        // });
+        const createResponse = await userServiceInstance.createUser(user);
         expect(createResponse.status()).toBe(201);
 
         const createResponseBody = await createResponse.json();
@@ -506,9 +508,10 @@ test.describe('PUT /usuarios/{id}', () => {
         // console.log('Update first name:', updateFirstName);
         // console.log('Update last name:', updateLastName);
 
-        const updateResponse = await request.put(`https://serverest.dev/usuarios/${userId}`, {
-            data: updateData
-        });
+        // const updateResponse = await request.put(`https://serverest.dev/usuarios/${userId}`, {
+        //     data: updateData
+        // });
+        const updateResponse = await userServiceInstance.updateUser(userId, updateData);
 
         if (firstName !== updateFirstName || lastName !== updateLastName) {
             // console.log('User name has been updated.');
