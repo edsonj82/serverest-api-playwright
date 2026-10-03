@@ -19,12 +19,17 @@ export const userService = (request) => {
             data: updateData
         });
     };
-
+    const deleteUser = async (userId) => {
+        const safeUserId = typeof userId === 'symbol' ? userId.description : String(userId);
+        return await request.delete(`https://serverest.dev/usuarios/${safeUserId}`, {
+        });
+    };
     return {
         createUser,
         getUsers,
         getUserById,
-        updateUser
+        updateUser,
+        deleteUser
     };
 };
 

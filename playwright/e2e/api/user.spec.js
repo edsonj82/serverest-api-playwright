@@ -618,21 +618,22 @@ test.describe('PUT /usuarios/{id}', () => {
 });
 
 test.describe('DELETE /usuarios/{id}', () => {
+    let userServiceInstance;
+    test.beforeEach(async ({ request }) => {
+        userServiceInstance = userService(request);
+    });
 
     test('it should delete user by ID', async ({ request }) => {
-
         const user = getUser();
         user.administrador = 'false';
 
-        const createResponse = await request.post('https://serverest.dev/usuarios', {
-            data: user
-        });
+        const createResponse = await userServiceInstance.createUser(user);
         expect(createResponse.status()).toBe(201);
 
         const createResponseBody = await createResponse.json();
         const userId = createResponseBody._id;
 
-        const deleteResponse = await request.delete(`https://serverest.dev/usuarios/${userId}`);
+        const deleteResponse = await userServiceInstance.deleteUser(userId);
         expect(deleteResponse.status()).toBe(200);
 
         const deleteResponseBody = await deleteResponse.json();
@@ -641,16 +642,18 @@ test.describe('DELETE /usuarios/{id}', () => {
 
     test('it should return 200 for valid length ID that does not exist', async ({ request }) => {
         const nonExistentUserId = '0000000000000000';
-        const response = await request.delete(`https://serverest.dev/usuarios/${nonExistentUserId}`);
+        const response = await userServiceInstance.deleteUser(nonExistentUserId);
         expect(response.status()).toBe(200);
+
         const responseBody = await response.json();
         expect(responseBody).toHaveProperty('message', 'Nenhum registro excluído');
     });
 
     test('it should return 400 when ID has invalid length', async ({ request }) => {
         const invalidLengthUserId = '123';
-        const response = await request.delete(`https://serverest.dev/usuarios/${invalidLengthUserId}`);
+        const response = await userServiceInstance.deleteUser(invalidLengthUserId);
         expect(response.status()).toBe(200);
+
         const responseBody = await response.json();
         expect(responseBody).toHaveProperty('message', 'Nenhum registro excluído');
     });
@@ -672,8 +675,9 @@ test.describe('DELETE /usuarios/{id}', () => {
 
     test('it should return 405 when ID is empty', async ({ request }) => {
         const emptyUserId = '';
-        const response = await request.delete(`https://serverest.dev/usuarios/${emptyUserId}`);
+        const response = await userServiceInstance.deleteUser(emptyUserId);
         expect(response.status()).toBe(405);
+
         const responseBody = await response.json();
         expect(responseBody).toHaveProperty('message', 'Não é possível realizar DELETE em /usuarios/. Acesse https://serverest.dev para ver as rotas disponíveis e como utilizá-las.');
     });
@@ -687,112 +691,126 @@ test.describe('DELETE /usuarios/{id}', () => {
 
     test('it should return 200 when ID is not a string', async ({ request }) => {
         const nonStringId = 1234567890123456;
-        const response = await request.delete(`https://serverest.dev/usuarios/${nonStringId}`);
+        const response = await userServiceInstance.deleteUser(nonStringId);
         expect(response.status()).toBe(200);
+
         const responseBody = await response.json();
         expect(responseBody).toHaveProperty('message', 'Nenhum registro excluído');
     });
 
     test('it should return 200 when ID contains special characters', async ({ request }) => {
         const specialCharId = '1234!@#$%^&*()';
-        const response = await request.delete(`https://serverest.dev/usuarios/${specialCharId}`);
+        const response = await userServiceInstance.deleteUser(specialCharId);
         expect(response.status()).toBe(200);
+
         const responseBody = await response.json();
         expect(responseBody).toHaveProperty('message', 'Nenhum registro excluído');
     });
 
     test('it should return 200 when ID contains spaces', async ({ request }) => {
         const spaceId = '1234 5678 9012 3456';
-        const response = await request.delete(`https://serverest.dev/usuarios/${spaceId}`);
+        const response = await userServiceInstance.deleteUser(spaceId);
         expect(response.status()).toBe(200);
+
         const responseBody = await response.json();
         expect(responseBody).toHaveProperty('message', 'Nenhum registro excluído');
     });
 
     test('it should return 200 when ID contains non-alphanumeric characters', async ({ request }) => {
         const nonAlphanumericId = '1234-5678-9012-3456';
-        const response = await request.delete(`https://serverest.dev/usuarios/${nonAlphanumericId}`);
+        const response = await userServiceInstance.deleteUser(nonAlphanumericId);
         expect(response.status()).toBe(200);
+
         const responseBody = await response.json();
         expect(responseBody).toHaveProperty('message', 'Nenhum registro excluído');
     });
 
     test('it should return 200 when ID is null', async ({ request }) => {
         const nullId = null;
-        const response = await request.delete(`https://serverest.dev/usuarios/${nullId}`);
+        const response = await userServiceInstance.deleteUser(nullId);
         expect(response.status()).toBe(200);
+
         const responseBody = await response.json();
         expect(responseBody).toHaveProperty('message', 'Nenhum registro excluído');
     });
 
     test('it should return 200 when ID is undefined', async ({ request }) => {
         const undefinedId = undefined;
-        const response = await request.delete(`https://serverest.dev/usuarios/${undefinedId}`);
+        const response = await userServiceInstance.deleteUser(undefinedId);
         expect(response.status()).toBe(200);
+
         const responseBody = await response.json();
         expect(responseBody).toHaveProperty('message', 'Nenhum registro excluído');
     });
 
     test('it should return 200 when ID is a boolean', async ({ request }) => {
         const booleanId = true;
-        const response = await request.delete(`https://serverest.dev/usuarios/${booleanId}`);
+        const response = await userServiceInstance.deleteUser(booleanId);
         expect(response.status()).toBe(200);
+
         const responseBody = await response.json();
         expect(responseBody).toHaveProperty('message', 'Nenhum registro excluído');
     });
 
     test('it should return 200 when ID is an array', async ({ request }) => {
         const arrayId = ['1234567890123456'];
-        const response = await request.delete(`https://serverest.dev/usuarios/${arrayId}`);
+        const response = await userServiceInstance.deleteUser(arrayId);
         expect(response.status()).toBe(200);
+
         const responseBody = await response.json();
         expect(responseBody).toHaveProperty('message', 'Nenhum registro excluído');
     });
 
     test('it should return 200 when ID is an object', async ({ request }) => {
         const objectId = { id: '1234567890123456' };
-        const response = await request.delete(`https://serverest.dev/usuarios/${objectId}`);
+        const response = await userServiceInstance.deleteUser(objectId);
         expect(response.status()).toBe(200);
+        
         const responseBody = await response.json();
         expect(responseBody).toHaveProperty('message', 'Nenhum registro excluído');
     });
 
     test('it should return 200 when ID is a function', async ({ request }) => {
         const functionId = () => '1234567890123456';
-        const response = await request.delete(`https://serverest.dev/usuarios/${functionId}`);
+        const response = await userServiceInstance.deleteUser(functionId);
         expect(response.status()).toBe(200);
+        
         const responseBody = await response.json();
         expect(responseBody).toHaveProperty('message', 'Nenhum registro excluído');
     });
 
     test('it should return 200 when ID is a symbol', async ({ request }) => {
         const symbolId = Symbol('1234567890123456');
-        const response = await request.delete(`https://serverest.dev/usuarios/${symbolId.toString()}`);
+        const response = await userServiceInstance.deleteUser(symbolId);
         expect(response.status()).toBe(200);
+        
         const responseBody = await response.json();
         expect(responseBody).toHaveProperty('message', 'Nenhum registro excluído');
     });
 
     test('it should return 200 when ID is a BigInt', async ({ request }) => {
         const bigIntId = BigInt('1234567890123456');
-        const response = await request.delete(`https://serverest.dev/usuarios/${bigIntId.toString()}`);
+        const response = await userServiceInstance.deleteUser(bigIntId);
         expect(response.status()).toBe(200);
+        
         const responseBody = await response.json();
         expect(responseBody).toHaveProperty('message', 'Nenhum registro excluído');
     });
 
     test('it should return 200 when ID is a Date object', async ({ request }) => {
         const dateId = new Date();
-        const response = await request.delete(`https://serverest.dev/usuarios/${dateId.toISOString()}`);
+        const response = await userServiceInstance.deleteUser(dateId);
         expect(response.status()).toBe(200);
+        
         const responseBody = await response.json();
         expect(responseBody).toHaveProperty('message', 'Nenhum registro excluído');
     });
 
     test('it should return 200 when ID is a RegExp object', async ({ request }) => {
         const regexId = /1234567890123456/;
-        const response = await request.delete(`https://serverest.dev/usuarios/${regexId.toString()}`);
+        const response = await userServiceInstance.deleteUser(regexId);
         expect(response.status()).toBe(200);
+        
         const responseBody = await response.json();
         expect(responseBody).toHaveProperty('message', 'Nenhum registro excluído');
     });
