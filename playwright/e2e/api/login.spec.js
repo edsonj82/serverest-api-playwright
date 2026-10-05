@@ -1,34 +1,30 @@
 import { test, expect } from '@playwright/test';
 import { faker } from '@faker-js/faker';
 import { getUser } from '../../support/factories/user.js';
+import { userService } from '../../support/services/user.js';
+import { loginService } from '../../support/services/login.js';
 
 test.describe('POST /login', () => {
-
     let userId, authorization;
+
+    let userServiceInstance, loginServiceInstance;
+    test.beforeEach(async ({ request }) => {
+        userServiceInstance = userService(request);
+        loginServiceInstance = loginService(request);
+    });
 
     test('it should log in successfully with valid credentials', async ({ request }) => {
         const user = getUser();
         user.administrador = 'false';
 
-        const response = await request.post('https://serverest.dev/usuarios', {
-            data: user
-        });
-
+        const response = await userServiceInstance.createUser(user);
         expect(response.ok()).toBeTruthy();
-
         userId = (await response.json())._id;
 
-        const loginResponse = await request.post('https://serverest.dev/login', {
-            data: {
-                email: user.email,
-                password: user.password
-            }
-        });
-
+        const loginResponse = await loginServiceInstance.postLogin(user);
         expect(loginResponse.ok()).toBeTruthy();
 
         const loginData = await loginResponse.json();
-
         expect(loginData).toHaveProperty('authorization');
         authorization = loginData.authorization;
         expect(authorization).toBeTruthy();
@@ -40,11 +36,9 @@ test.describe('POST /login', () => {
         const invalidEmail = faker.internet.email();
         const invalidPassword = faker.internet.password();
 
-        const loginResponse = await request.post('https://serverest.dev/login', {
-            data: {
-                email: invalidEmail,
-                password: invalidPassword
-            }
+        const loginResponse = await loginServiceInstance.postLogin({
+            email: invalidEmail,
+            password: invalidPassword
         });
 
         expect(loginResponse.ok()).toBeFalsy();
@@ -55,11 +49,9 @@ test.describe('POST /login', () => {
     });
 
     test('it should fail to log in with empty email', async ({ request }) => {
-        const loginResponse = await request.post('https://serverest.dev/login', {
-            data: {
-                email: '',
-                password: faker.internet.password()
-            }
+        const loginResponse = await loginServiceInstance.postLogin({
+            email: '',
+            password: faker.internet.password()
         });
 
         expect(loginResponse.ok()).toBeFalsy();
@@ -70,11 +62,9 @@ test.describe('POST /login', () => {
     });
 
     test('it should fail to log in with empty password', async ({ request }) => {
-        const loginResponse = await request.post('https://serverest.dev/login', {
-            data: {
-                email: faker.internet.email(),
-                password: ''
-            }
+        const loginResponse = await loginServiceInstance.postLogin({
+            email: faker.internet.email(),
+            password: ''
         });
 
         expect(loginResponse.ok()).toBeFalsy();
@@ -85,11 +75,9 @@ test.describe('POST /login', () => {
     });
 
     test('it should fail to log in with empty email and password', async ({ request }) => {
-        const loginResponse = await request.post('https://serverest.dev/login', {
-            data: {
-                email: '',
-                password: ''
-            }
+        const loginResponse = await loginServiceInstance.postLogin({
+            email: '',
+            password: ''
         });
 
         expect(loginResponse.ok()).toBeFalsy();
@@ -101,29 +89,22 @@ test.describe('POST /login', () => {
     });
 
     test('it should log in successfully with valid credentials and then log out', async ({ request }) => {
-
         const user = getUser();
         user.administrador = 'false';
 
-        const response = await request.post('https://serverest.dev/usuarios', {
-            data: user
-        });
-
-        // expect(response.ok()).toBeTruthy();
+        const response = await userServiceInstance.createUser(user);
         expect(response.status()).toBe(201);
 
-        const loginResponse = await request.post('https://serverest.dev/login', {
-            data: {
-                email: user.email,
-                password: user.password
-            }
+        const loginResponse = await loginServiceInstance.postLogin({
+            email: user.email,
+            password: user.password
         });
 
         expect(loginResponse.ok()).toBeTruthy();
 
         const loginData = await loginResponse.json();
-
         expect(loginData).toHaveProperty('authorization');
+
         authorization = loginData.authorization;
         expect(authorization).toBeTruthy();
 
@@ -147,33 +128,20 @@ test.describe('POST /login', () => {
     });
 
     test('it should fail to log in with a deleted user', async ({ request }) => {
-
         const user = getUser();
         user.administrador = 'false';
 
-        const response = await request.post('https://serverest.dev/usuarios', {
-            data: user
-        });
-
+        const response = await userServiceInstance.createUser(user);
         expect(response.ok()).toBeTruthy();
         expect(response.status()).toBe(201);
 
         userId = (await response.json())._id;
-
-        // Delete the user
-        const deleteResponse = await request.delete(`https://serverest.dev/usuarios/${userId}`, {
-            headers: {
-                'Authorization': `Bearer ${authorization}`
-            }
-        });
+        const deleteResponse = await userServiceInstance.deleteUser(userId, authorization);
         expect(deleteResponse.ok()).toBeTruthy();
 
-        // Now, try to log in with the deleted user
-        const loginResponse = await request.post('https://serverest.dev/login', {
-            data: {
-                email: user.email,
-                password: user.password
-            }
+        const loginResponse = await loginServiceInstance.postLogin({
+            email: user.email,
+            password: user.password
         });
 
         expect(loginResponse.ok()).toBeFalsy();
@@ -181,18 +149,14 @@ test.describe('POST /login', () => {
 
         const loginData = await loginResponse.json();
         expect(loginData).toHaveProperty('message', 'Email e/ou senha inválidos');
-
     });
 
     test('it should fail to log in with a user that does not exist', async ({ request }) => {
         const nonExistentEmail = faker.internet.email();
         const nonExistentPassword = faker.internet.password();
-
-        const loginResponse = await request.post('https://serverest.dev/login', {
-            data: {
-                email: nonExistentEmail,
-                password: nonExistentPassword
-            }
+        const loginResponse = await loginServiceInstance.postLogin({
+            email: nonExistentEmail,
+            password: nonExistentPassword
         });
 
         expect(loginResponse.ok()).toBeFalsy();
@@ -200,33 +164,29 @@ test.describe('POST /login', () => {
 
         const loginData = await loginResponse.json();
         expect(loginData).toHaveProperty('message', 'Email e/ou senha inválidos');
-
     });
 
     test('it should fail to log in with a user that has been deactivated', async ({ request }) => {
-
         const user = getUser();
         user.administrador = 'false';
 
-        const response = await request.post('https://serverest.dev/usuarios', {
-            data: user
-        });
+        const response = await userServiceInstance.createUser(user);
         expect(response.ok()).toBeTruthy();
-
-        userId = (await response.json())._id;
 
         test.fixme(true, 'BUG: POST /usuarios fails when payload is missing required fields (nome, email, password)'
         );
         // Deactivate the user
-        const deactivateResponse = await request.put(`https://serverest.dev/usuarios/${userId}`, {
-            headers: {
-                'Authorization': `Bearer ${authorization}`
-            },
-            data: {
-                administrador: 'false',
-                ativo: false
-            }
-        });
+        userId = (await response.json())._id;
+        // const deactivateResponse = await request.put(`https://serverest.dev/usuarios/${userId}`, {
+        //     headers: {
+        //         'Authorization': `Bearer ${authorization}`
+        //     },
+        //     data: {
+        //         administrador: 'false',
+        //         ativo: false
+        //     }
+        // });
+        const deactivateResponse = await userServiceInstance.deactivateUser(userId, authorization);
         expect(deactivateResponse.ok()).toBeTruthy();
     });
 });
