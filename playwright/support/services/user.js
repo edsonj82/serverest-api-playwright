@@ -1,5 +1,3 @@
-import { get } from "node:http";
-
 export const userService = (request) => {
     const createUser = async (user) => {
         return await request.post('https://serverest.dev/usuarios', {

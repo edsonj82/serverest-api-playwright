@@ -3,26 +3,28 @@ import { faker } from '@faker-js/faker';
 import { getUser } from '../../support/factories/user.js';
 import { getProduct } from '../../support/factories/product.js';
 
-test.describe('POST /produtos', () => {
-    let authorization;
+import { loginService } from '../../support/services/login.js';
+import { userService } from '../../support/services/user.js';
+import { productService } from '../../support/services/product.js';
 
-    test.beforeAll(async ({ request }) => {
+test.describe('POST /produtos', () => {
+    let authorization, userServiceInstance, loginServiceInstance, productServiceInstance;
+    test.beforeEach(async ({ request }) => {
+        userServiceInstance = userService(request);
+        loginServiceInstance = loginService(request);
+        productServiceInstance = productService(request);
+
         // 1. Dados do usuário Administrador
         const user = getUser();
         user.administrador = "true";
 
         // 2. Criar usuário admin
-        const response = await request.post('https://serverest.dev/usuarios', {
-            data: user
-        });
+        const response = await userServiceInstance.createUser(user);
         expect(response.ok()).toBeTruthy();
 
-        // 3. Fazer login para capturar o Token
-        const loginResponse = await request.post('https://serverest.dev/login', {
-            data: {
-                email: user.email,
-                password: user.password
-            }
+        const loginResponse = await loginServiceInstance.postLogin({
+            email: user.email,
+            password: user.password
         });
         expect(loginResponse.ok()).toBeTruthy();
 
@@ -31,17 +33,9 @@ test.describe('POST /produtos', () => {
     });
 
     test('it should create a product successfully with valid data', async ({ request }) => {
-
         const product = getProduct()
 
-        const response = await request.post('https://serverest.dev/produtos', {
-            data: product,
-            headers: {
-                'Content-Type': 'application/json',
-                'authorization': authorization// Garante a passagem da autorização corretamente
-            }
-        });
-
+        const response = await productServiceInstance.createProduct(product, authorization);
         expect(response.status()).toBe(201);
 
         const responseData = await response.json();
@@ -54,25 +48,11 @@ test.describe('POST /produtos', () => {
         const product = getProduct();
         const duplicateProduct = { ...product };
 
-        // Primeiro, cria o produto
-        const createResponse = await request.post('https://serverest.dev/produtos', {
-            data: product,
-            headers: {
-                'Content-Type': 'application/json',
-                'authorization': authorization
-            }
-        });
+        const createResponse = await productServiceInstance.createProduct(product, authorization);
         expect(createResponse.status()).toBe(201);
 
         // Tenta criar o mesmo produto novamente
-        const response = await request.post('https://serverest.dev/produtos', {
-            data: duplicateProduct,
-            headers: {
-                'Content-Type': 'application/json',
-                'authorization': authorization
-            }
-        });
-
+        const response = await productServiceInstance.createProduct(duplicateProduct, authorization);
         expect(response.status()).toBe(400);
 
         const responseData = await response.json();
@@ -86,18 +66,11 @@ test.describe('POST /produtos', () => {
         user.administrador = 'false'; // Define o usuário como comum
 
         // 2. Criar usuário comum
-        const createUserResponse = await request.post('https://serverest.dev/usuarios', {
-            data: user
-        });
+        const createUserResponse = await userServiceInstance.createUser(user);
         expect(createUserResponse.ok()).toBeTruthy();
 
         // 3. Fazer login para capturar o Token do usuário comum
-        const loginResponse = await request.post('https://serverest.dev/login', {
-            data: {
-                email: user.email,
-                password: user.password
-            }
-        });
+        const loginResponse = await loginServiceInstance.postLogin(user);
         expect(loginResponse.ok()).toBeTruthy();
 
         const loginData = await loginResponse.json();
@@ -105,15 +78,7 @@ test.describe('POST /produtos', () => {
 
         // 4. Tentar criar um produto com o usuário comum
         const product = getProduct();
-
-        const response = await request.post('https://serverest.dev/produtos', {
-            data: product,
-            headers: {
-                'Content-Type': 'application/json',
-                'authorization': userAuthorization
-            }
-        });
-
+        const response = await productServiceInstance.createProduct(product, userAuthorization);
         expect(response.status()).toBe(403);
 
         const responseData = await response.json();
@@ -122,18 +87,10 @@ test.describe('POST /produtos', () => {
     });
 
     test('it should return an error when creating a product with missing required nome field', async ({ request }) => {
-
         const product = getProduct();
         delete product.nome;
 
-        const response = await request.post('https://serverest.dev/produtos', {
-            data: product,
-            headers: {
-                'Content-Type': 'application/json',
-                'authorization': authorization
-            }
-        });
-
+        const response = await productServiceInstance.createProduct(product, authorization);
         expect(response.status()).toBe(400);
 
         const responseData = await response.json();
@@ -144,15 +101,7 @@ test.describe('POST /produtos', () => {
     test('it should return an error when creating a product with empty required nome field', async ({ request }) => {
         const product = getProduct();
         product.nome = ''; // nome is empty
-
-        const response = await request.post('https://serverest.dev/produtos', {
-            data: product,
-            headers: {
-                'Content-Type': 'application/json',
-                'authorization': authorization
-            }
-        });
-
+        const response = await productServiceInstance.createProduct(product, authorization);
         expect(response.status()).toBe(400);
 
         const responseData = await response.json();
@@ -160,22 +109,13 @@ test.describe('POST /produtos', () => {
     });
 
     test('it should return an error when creating a product with missing required preco field', async ({ request }) => {
-
         const product = getProduct();
         delete product.preco;
 
-        const response = await request.post('https://serverest.dev/produtos', {
-            data: product,
-            headers: {
-                'Content-Type': 'application/json',
-                'authorization': authorization
-            }
-        });
-
+        const response = await productServiceInstance.createProduct(product, authorization);
         expect(response.status()).toBe(400);
 
         const responseData = await response.json();
-
         console.log('Response Data:', responseData); // Log para depuração
         expect(responseData).toHaveProperty('preco', 'preco é obrigatório'); // Verifica se a resposta contém a propriedade 'preco'
     });
@@ -183,15 +123,7 @@ test.describe('POST /produtos', () => {
     test('it should return an error when creating a product with empty required preco field', async ({ request }) => {
         const product = getProduct();
         product.preco = ''; // preco is empty
-
-        const response = await request.post('https://serverest.dev/produtos', {
-            data: product,
-            headers: {
-                'Content-Type': 'application/json',
-                'authorization': authorization
-            }
-        });
-
+        const response = await productServiceInstance.createProduct(product, authorization);
         expect(response.status()).toBe(400);
 
         const responseData = await response.json();
@@ -199,18 +131,9 @@ test.describe('POST /produtos', () => {
     });
 
     test('it should return and error when creating a product with invalid preco field (string instead of number)', async ({ request }) => {
-
         const product = getProduct();
         product.preco = '-10,00'; // preco is a string instead of a number
-
-        const response = await request.post('https://serverest.dev/produtos', {
-            data: product,
-            headers: {
-                'Content-Type': 'application/json',
-                'authorization': authorization
-            }
-        });
-
+        const response = await productServiceInstance.createProduct(product, authorization);
         expect(response.status()).toBe(400);
 
         const responseData = await response.json();
@@ -218,18 +141,9 @@ test.describe('POST /produtos', () => {
     });
 
     test('it should return an error when creating a product with missing required descricao field', async ({ request }) => {
-
         const product = getProduct();
         delete product.descricao;
-
-        const response = await request.post('https://serverest.dev/produtos', {
-            data: product,
-            headers: {
-                'Content-Type': 'application/json',
-                'authorization': authorization
-            }
-        });
-
+        const response = await productServiceInstance.createProduct(product, authorization);
         expect(response.status()).toBe(400);
 
         const responseData = await response.json();
@@ -239,18 +153,9 @@ test.describe('POST /produtos', () => {
     });
 
     test('it should return an error when creating a product with empty required descricao field', async ({ request }) => {
-
         const product = getProduct();
         product.descricao = '';
-
-        const response = await request.post('https://serverest.dev/produtos', {
-            data: product,
-            headers: {
-                'Content-Type': 'application/json',
-                'authorization': authorization
-            }
-        });
-
+        const response = await productServiceInstance.createProduct(product, authorization);
         expect(response.status()).toBe(400);
 
         const responseData = await response.json();
@@ -258,17 +163,9 @@ test.describe('POST /produtos', () => {
     });
 
     test('it should return an error when creating a product with missing required quantidade field', async ({ request }) => {
-
         const product = getProduct();
         delete product.quantidade; // Remove the quantidade field to simulate missing required field
-
-        const response = await request.post('https://serverest.dev/produtos', {
-            data: product,
-            headers: {
-                'Content-Type': 'application/json',
-                'authorization': authorization
-            }
-        });
+        const response = await productServiceInstance.createProduct(product, authorization);    
         expect(response.status()).toBe(400);
 
         const responseData = await response.json();
@@ -276,17 +173,9 @@ test.describe('POST /produtos', () => {
     });
 
     test('it should return an error when creating a product with empty required quantidade field', async ({ request }) => {
-
         const product = getProduct();
         product.quantidade = '';
-
-        const response = await request.post('https://serverest.dev/produtos', {
-            data: product,
-            headers: {
-                'Content-Type': 'application/json',
-                'authorization': authorization
-            }
-        });
+        const response = await productServiceInstance.createProduct(product, authorization);
         expect(response.status()).toBe(400);
 
         const responseData = await response.json();
@@ -294,18 +183,9 @@ test.describe('POST /produtos', () => {
     });
 
     test('it should return an error when creating a product with invalid quantidade field (string instead of number)', async ({ request }) => {
-
         const product = getProduct();
         product.quantidade = 'dez'; // quantidade is a string instead of a number
-
-        const response = await request.post('https://serverest.dev/produtos', {
-            data: product,
-            headers: {
-                'Content-Type': 'application/json',
-                'authorization': authorization
-            }
-        });
-
+        const response = await productServiceInstance.createProduct(product, authorization);
         expect(response.status()).toBe(400);
 
         const responseData = await response.json();
@@ -313,18 +193,9 @@ test.describe('POST /produtos', () => {
     });
 
     test('it should return an error when creating a product with missing required administrador field', async ({ request }) => {
-
         const incompleteProduct = getProduct();
         delete incompleteProduct.administrador;
-
-        const response = await request.post('https://serverest.dev/produtos', {
-            data: product,
-            headers: {
-                'Content-Type': 'application/json',
-                'authorization': authorization
-            }
-        });
-
+        const response = await productServiceInstance.createProduct(incompleteProduct, authorization);
         // Marca o teste como "fixme" apontando o ID do bug/card
         test.fixme(true, 'BUG: API returning 201 instead of 400 for non-existent administrador is missing');
         expect(response.status()).toBe(400);
@@ -334,17 +205,9 @@ test.describe('POST /produtos', () => {
     });
 
     test('it should return an error when creating a product with invalid administrador field (not "true" or "false")', async ({ request }) => {
-
         const product = getProduct();
         product.administrador = 'yes'; // administrador is invalid  
-
-        const response = await request.post('https://serverest.dev/produtos', {
-            data: product,
-            headers: {
-                'Content-Type': 'application/json',
-                'authorization': authorization
-            }
-        });
+        const response = await productServiceInstance.createProduct(product, authorization);
         expect(response.status()).toBe(400);
 
         const responseData = await response.json();
@@ -352,17 +215,9 @@ test.describe('POST /produtos', () => {
     });
 
     test('it should return an error when creating a product with empty required administrador field', async ({ request }) => {
-
         const product = getProduct();
         product.administrador = ''; // administrador is empty
-
-        const response = await request.post('https://serverest.dev/produtos', {
-            data: product,
-            headers: {
-                'Content-Type': 'application/json',
-                'authorization': authorization
-            }
-        });
+        const response = await productServiceInstance.createProduct(product, authorization);
         expect(response.status()).toBe(400);
         const responseData = await response.json();
         expect(responseData).toHaveProperty('administrador'); // Verifica se a resposta contém a propriedade 'administrador'
