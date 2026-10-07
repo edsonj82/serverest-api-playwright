@@ -165,7 +165,7 @@ test.describe('POST /produtos', () => {
     test('it should return an error when creating a product with missing required quantidade field', async ({ request }) => {
         const product = getProduct();
         delete product.quantidade; // Remove the quantidade field to simulate missing required field
-        const response = await productServiceInstance.createProduct(product, authorization);    
+        const response = await productServiceInstance.createProduct(product, authorization);
         expect(response.status()).toBe(400);
 
         const responseData = await response.json();
@@ -225,18 +225,8 @@ test.describe('POST /produtos', () => {
     });
 
     test('it should return an error when creating a product with all missing required fields', async ({ request }) => {
-        const product = {
-            // All required fields are missing
-        };
-
-        const response = await request.post('https://serverest.dev/produtos', {
-            data: product,
-            headers: {
-                'Content-Type': 'application/json',
-                'authorization': authorization
-            }
-        });
-
+        const product = {};// All required fields are missing
+        const response = await productServiceInstance.createProduct(product, authorization);
         expect(response.status()).toBe(400);
 
         const responseData = await response.json();
@@ -254,7 +244,6 @@ test.describe('POST /produtos', () => {
     });
 
     test('it should return an error when creating a product with all invalid required fields', async ({ request }) => {
-
         const product = getProduct();
         product.nome = 123;
         product.preco = 'invalid';
@@ -262,13 +251,7 @@ test.describe('POST /produtos', () => {
         product.quantidade = 'invalid';
         product.administrador = 'invalid';
 
-        const response = await request.post('https://serverest.dev/produtos', {
-            data: product,
-            headers: {
-                'Content-Type': 'application/json',
-                'authorization': authorization
-            }
-        });
+        const response = await productServiceInstance.createProduct(product, authorization);
         expect(response.status()).toBe(400);
 
         const responseData = await response.json();
@@ -286,17 +269,8 @@ test.describe('POST /produtos', () => {
     });
 
     test('it should return an error when the token is missing', async ({ request }) => {
-
         const product = getProduct();
-
-        const response = await request.post('https://serverest.dev/produtos', {
-            data: product,
-            headers: {
-                'Content-Type': 'application/json',
-                // 'authorization' header is missing or invalid
-            }
-        });
-
+        const response = await productServiceInstance.createProduct(product, '');
         expect(response.status()).toBe(401);
 
         const responseData = await response.json();
@@ -305,18 +279,9 @@ test.describe('POST /produtos', () => {
     });
 
     test('it should return an error when the token is invalid', async ({ request }) => {
-        const invalid_token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIn0.SflKxwRJSMeKKF2jWBLfI8T4JdF-P_A6gU3P-XoDq3o';
-
         const product = getProduct();
-        const response = await request.post('https://serverest.dev/produtos', {
-            data: product,
-            headers: {
-                'Content-Type': 'application/json',
-                // 'authorization': 'Bearer invalid_token'
-                'authorization': `Bearer ${invalid_token}`
-            }
-        });
-
+        const invalid_token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIn0.SflKxwRJSMeKKF2jWBLfI8T4JdF-P_A6gU3P-XoDq3o';
+        const response = await productServiceInstance.createProduct(product,`Bearer ${invalid_token}`);
         expect(response.status()).toBe(401);
 
         const responseData = await response.json();
@@ -325,17 +290,9 @@ test.describe('POST /produtos', () => {
     });
 
     test('it should return an error when the token is expired', async ({ request }) => {
-        const expired_token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImxlbGFuZC5vY29ubmVyQGdtYWlsLmNvbSIsInBhc3N3b3JkIjoic0owUUp5dkxQWkRSZng4IiwiaWF0IjoxNzg1Nzk2ODgxLCJleHAiOjE3ODU3OTc0ODF9.K-57b8Vd3IbCWZUh8qSpb63YqCp1UchJO2sEXyZp7h4';
-
         const product = getProduct();// Gerar um produto válido usando a função getProduct()
-        const response = await request.post('https://serverest.dev/produtos', {
-            data: product,
-            headers: {
-                'Content-Type': 'application/json',
-                'authorization': `Bearer ${expired_token}`
-            }
-        });
-
+        const expired_token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImxlbGFuZC5vY29ubmVyQGdtYWlsLmNvbSIsInBhc3N3b3JkIjoic0owUUp5dkxQWkRSZng4IiwiaWF0IjoxNzg1Nzk2ODgxLCJleHAiOjE3ODU3OTc0ODF9.K-57b8Vd3IbCWZUh8qSpb63YqCp1UchJO2sEXyZp7h4';
+        const response = await productServiceInstance.createProduct(product, `Bearer ${expired_token}`);
         expect(response.status()).toBe(401);
 
         const responseData = await response.json();
