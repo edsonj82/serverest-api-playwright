@@ -8,7 +8,26 @@ export const productService = (request) => {
             }
         });
     };
+    const getProductById = async (productId, authorization) => {
+        return await request.get(`https://serverest.dev/produtos/${productId}`, {
+            headers: {
+                'Content-Type': 'application/json',
+                'authorization': authorization
+            }
+        });
+    };
+    const getProducts = async (queryParams, authorization) => {
+        return await request.get('https://serverest.dev/produtos', {
+            params: queryParams,
+            headers: {
+                'Content-Type': 'application/json',
+                'authorization': authorization
+            }
+        });
+    };
     return {
-        createProduct
+        createProduct,
+        getProductById,
+        getProducts
     };
 };
