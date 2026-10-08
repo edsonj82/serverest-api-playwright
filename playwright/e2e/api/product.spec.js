@@ -648,39 +648,32 @@ test.describe('GET /produtos/:id', () => {
 
 test.describe('PUT /produtos/:id', () => {
     let authorization, productId;
+    let userServiceInstance, loginServiceInstance, productServiceInstance;
 
-    test.beforeAll(async ({ request }) => {
+    test.beforeEach(async ({ request }) => {
+        userServiceInstance = userService(request);
+        loginServiceInstance = loginService(request);
+        productServiceInstance = productService(request);
         // 1. Dados do usuário Administrador
         const user = getUser();
-
-        // 2. Criar usuário admin
-        const response = await request.post('https://serverest.dev/usuarios', {
-            data: user
-        });
+        const response = await userServiceInstance.createUser(user);
         expect(response.ok()).toBeTruthy();
 
         // 3. Fazer login para capturar o Token
-        const loginResponse = await request.post('https://serverest.dev/login', {
-            data: {
-                email: user.email,
-                password: user.password
-            }
+        const loginResponse = await loginServiceInstance.postLogin({
+            email: user.email,
+            password: user.password
         });
         expect(loginResponse.ok()).toBeTruthy();
 
         const loginData = await loginResponse.json();
         authorization = loginData.authorization; // Armazena "Bearer <token>"
 
-        const product = getProduct();
-
         // 4. Criar produto
-        const createProductResponse = await request.post('https://serverest.dev/produtos', {
-            data: product,
-            headers: {
-                'authorization': authorization
-            }
-        });
+        const product = getProduct();
+        const createProductResponse = await productServiceInstance.createProduct(product, authorization);
         expect(createProductResponse.ok()).toBeTruthy();
+
         const createProductData = await createProductResponse.json();
         productId = createProductData._id;
     });
@@ -690,12 +683,13 @@ test.describe('PUT /produtos/:id', () => {
         const updatedProduct = getProduct();
         updatedProduct.nome = `${faker.commerce.productName()} ${Date.now()}`;
 
-        const response = await request.put(`https://serverest.dev/produtos/${productId}`, {
-            data: updatedProduct,
-            headers: {
-                'authorization': authorization
-            }
-        });
+        // const response = await request.put(`https://serverest.dev/produtos/${productId}`, {
+        //     data: updatedProduct,
+        //     headers: {
+        //         'authorization': authorization
+        //     }
+        // });
+        const response = await productServiceInstance.updateProduct(productId, updatedProduct, authorization);
         expect(response.status()).toBe(200);
         const responseData = await response.json();
         // console.log('Response Data:', responseData); // Log para depuração

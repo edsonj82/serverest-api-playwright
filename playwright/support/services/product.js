@@ -25,9 +25,19 @@ export const productService = (request) => {
             }
         });
     };
+    const updateProduct = async (productId, updatedProduct, authorization) => {
+        return await request.put(`https://serverest.dev/produtos/${productId}`, {
+            data: updatedProduct,
+            headers: {
+                'Content-Type': 'application/json',
+                'authorization': authorization
+            }
+        });
+    };
     return {
         createProduct,
         getProductById,
-        getProducts
+        getProducts,
+        updateProduct
     };
 };
