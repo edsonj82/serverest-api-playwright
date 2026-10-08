@@ -560,17 +560,37 @@ test.describe('GET /produtos', () => {
 });
 
 test.describe('GET /produtos/:id', () => {
+    let authorization, userServiceInstance, loginServiceInstance, productServiceInstance;
+    test.beforeEach(async ({ request }) => {
+        userServiceInstance = userService(request);
+        loginServiceInstance = loginService(request);
+        productServiceInstance = productService(request);
+
+        // 1. Dados do usuário Administrador
+        const user = getUser();
+        user.administrador = "true";
+
+        // 2. Criar usuário admin
+        const response = await userServiceInstance.createUser(user);
+        expect(response.ok()).toBeTruthy();
+
+        const loginResponse = await loginServiceInstance.postLogin({
+            email: user.email,
+            password: user.password
+        });
+        expect(loginResponse.ok()).toBeTruthy();
+
+        const loginData = await loginResponse.json();
+        authorization = loginData.authorization; // Armazena "Bearer <token>"
+    });
 
     test('it should return a product by id', async ({ request }) => {
         const produtoId = 'BeeJh5lz3k6kSIzA';
-
-        const createResponse = await request.get(`https://serverest.dev/produtos/${produtoId}`);
-
+        const createResponse = await productServiceInstance.getProductById(produtoId);
         expect(createResponse.status()).toBe(200);
+
         const responseData = await createResponse.json();
-
         // console.log('Response Data:', responseData); // Log para depuração
-
         expect(responseData).toHaveProperty('_id', produtoId);
         expect(responseData).toHaveProperty('nome');
         expect(responseData).toHaveProperty('preco');
@@ -580,16 +600,12 @@ test.describe('GET /produtos/:id', () => {
 
     test('it should return list of the products when the product id is missing', async ({ request }) => {
         const emptyProductId = '';
-
-        const response = await request.get(`https://serverest.dev/produtos/${emptyProductId}`);
-
+        const response = await productServiceInstance.getProductById(emptyProductId);
         expect(response.status()).toBe(200);
 
         const responseData = await response.json();
         // console.log('Response Data:', responseData); // Log para depuração
-
         expect(Array.isArray(responseData.produtos)).toBe(true);
-
         expect(responseData.produtos.length).toBeGreaterThan(0);
         responseData.produtos.forEach(product => {
             expect(product).toHaveProperty('_id');
@@ -602,10 +618,9 @@ test.describe('GET /produtos/:id', () => {
 
     test('it should return an error when the product id is invalid', async ({ request }) => {
         const invalidProductId = 'invalid-id';
-
-        const response = await request.get(`https://serverest.dev/produtos/${invalidProductId}`);
-
+        const response = await productServiceInstance.getProductById(invalidProductId);
         expect(response.status()).toBe(400);
+
         const responseData = await response.json();
         // console.log('Response Data:', responseData); // Log para depuração
         expect(responseData).toHaveProperty('id', 'id deve ter exatamente 16 caracteres alfanuméricos');
@@ -613,9 +628,7 @@ test.describe('GET /produtos/:id', () => {
 
     test('it should return an error when the product id does not exist', async ({ request }) => {
         const nonExistentProductId = '1234567890123456'; // 16 caracteres alfanuméricos, mas não existe
-
-        const response = await request.get(`https://serverest.dev/produtos/${nonExistentProductId}`);
-
+        const response = await productServiceInstance.getProductById(nonExistentProductId);
         expect(response.status()).toBe(400);
         const responseData = await response.json();
         // console.log('Response Data:', responseData); // Log para depuração
@@ -624,10 +637,9 @@ test.describe('GET /produtos/:id', () => {
 
     test('it should return an error when the product id is missing and the url is invalid', async ({ request }) => {
         const emptyProductId = '';
-
         const response = await request.get(`https://serverest.dev/produtos-invalidos/${emptyProductId}`);
-
         expect(response.status()).toBe(405);
+
         const responseData = await response.json();
         // console.log('Response Data:', responseData);
         expect(responseData).toHaveProperty('message', 'Não é possível realizar GET em /produtos-invalidos/. Acesse https://serverest.dev para ver as rotas disponíveis e como utilizá-las.');
