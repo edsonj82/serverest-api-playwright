@@ -679,21 +679,13 @@ test.describe('PUT /produtos/:id', () => {
     });
 
     test('it should update a product by id', async ({ request }) => {
-
         const updatedProduct = getProduct();
         updatedProduct.nome = `${faker.commerce.productName()} ${Date.now()}`;
-
-        // const response = await request.put(`https://serverest.dev/produtos/${productId}`, {
-        //     data: updatedProduct,
-        //     headers: {
-        //         'authorization': authorization
-        //     }
-        // });
         const response = await productServiceInstance.updateProduct(productId, updatedProduct, authorization);
         expect(response.status()).toBe(200);
+
         const responseData = await response.json();
         // console.log('Response Data:', responseData); // Log para depuração
-
         expect(responseData).toHaveProperty('message', 'Registro alterado com sucesso');
     });
 
@@ -703,12 +695,7 @@ test.describe('PUT /produtos/:id', () => {
         const updatedProduct = getProduct();
         updatedProduct.nome = `${faker.commerce.productName()} ${Date.now()}`;
 
-        const response = await request.put(`https://serverest.dev/produtos/${invalidProductId}`, {
-            data: updatedProduct,
-            headers: {
-                'authorization': authorization
-            }
-        });
+        const response = await productServiceInstance.updateProduct(invalidProductId, updatedProduct, authorization);
         expect(response.status()).toBe(400);
         const responseData = await response.json();
         // console.log('Response Data:', responseData); // Log para depuração
@@ -716,17 +703,11 @@ test.describe('PUT /produtos/:id', () => {
     });
 
     test('it should return an error when updating a product with non-existent id', async ({ request }) => {
-        const nonExistentProductId = '1234567890123456';
-
         const updatedProduct = getProduct();
         updatedProduct.nome = `${faker.commerce.productName()} ${Date.now()}`;
 
-        const response = await request.put(`https://serverest.dev/produtos/${nonExistentProductId}`, {
-            data: updatedProduct,
-            headers: {
-                'authorization': authorization
-            }
-        });
+        const nonExistentProductId = '1234567890123456';
+        const response = await productServiceInstance.updateProduct(nonExistentProductId, updatedProduct, authorization);
 
         // Marca o teste como "fixme" apontando o ID do bug/card
         test.fixme(true, 'BUG: API returning 201 instead of 400 for non-existent product ID');
@@ -738,16 +719,9 @@ test.describe('PUT /produtos/:id', () => {
     });
 
     test('it should return an error when updating a product when nome has more than 124 characters', async ({ request }) => {
-
         const invalidProduct = getProduct();
         invalidProduct.nome = 'a'.repeat(125); // nome with 125 characters
-
-        const response = await request.put(`https://serverest.dev/produtos/${productId}`, {
-            data: invalidProduct,
-            headers: {
-                'authorization': authorization
-            }
-        });
+        const response = await productServiceInstance.updateProduct(productId, invalidProduct, authorization);
         // Marca o teste como "fixme" apontando o ID do bug/card
         test.fixme(true, 'BUG: API returning 200 instead of 400 for nome with more than 124 characters');
 
@@ -758,96 +732,64 @@ test.describe('PUT /produtos/:id', () => {
     });
 
     test('it should return an error when updating a product when preco is negative', async ({ request }) => {
-
         const invalidProduct = getProduct();
         invalidProduct.preco = -10; // preco is negative
-
-        const response = await request.put(`https://serverest.dev/produtos/${productId}`, {
-            data: invalidProduct,
-            headers: {
-                'authorization': authorization
-            }
-        });
+        const response = await productServiceInstance.updateProduct(productId, invalidProduct, authorization);
         expect(response.status()).toBe(400);
+
         const responseData = await response.json();
         // console.log('Response Data:', responseData); // Log para depuração
         expect(responseData).toHaveProperty('preco', 'preco deve ser um número positivo');
     });
 
     test('it should return an error when updating a product when quantidade is negative', async ({ request }) => {
-
         const invalidProduct = getProduct();
         invalidProduct.quantidade = -5; // quantidade is negative
-
-        const response = await request.put(`https://serverest.dev/produtos/${productId}`, {
-            data: invalidProduct,
-            headers: {
-                'authorization': authorization
-            }
-        });
+        const response = await productServiceInstance.updateProduct(productId, invalidProduct, authorization);
         expect(response.status()).toBe(400);
+
         const responseData = await response.json();
         // console.log('Response Data:', responseData); // Log para depuração
         expect(responseData).toHaveProperty('quantidade', 'quantidade deve ser maior ou igual a 0');
     });
 
     test('it should return an error when token is missing', async ({ request }) => {
-
         const updatedProduct = getProduct();
-        const response = await request.put(`https://serverest.dev/produtos/${productId}`, {
-            data: updatedProduct,
-            headers: {
-                // 'authorization' header is intentionally missing
-            }
-        });
+        const response = await productServiceInstance.updateProduct(productId, updatedProduct, '');
         expect(response.status()).toBe(401);
+
         const responseData = await response.json();
         // console.log('Response Data:', responseData); // Log para depuração
         expect(responseData).toHaveProperty('message', 'Token de acesso ausente, inválido, expirado ou usuário do token não existe mais');
     });
 
     test('it should return an error when token is invalid', async ({ request }) => {
-        const invalid_token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIn0.SflKxwRJSMeKKF2jWBLfI8T4JdF-P_A6gU3P-XoDq3o';
-
         const updatedProduct = getProduct();
-        const response = await request.put(`https://serverest.dev/produtos/${productId}`, {
-            data: updatedProduct,
-            headers: {
-                'authorization': invalid_token
-            }
-        });
+        const invalid_token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIn0.SflKxwRJSMeKKF2jWBLfI8T4JdF-P_A6gU3P-XoDq3o';
+        const response = await productServiceInstance.updateProduct(productId, updatedProduct, invalid_token);
         expect(response.status()).toBe(401);
+
         const responseData = await response.json();
         // console.log('Response Data:', responseData); // Log para depuração
         expect(responseData).toHaveProperty('message', 'Token de acesso ausente, inválido, expirado ou usuário do token não existe mais');
     });
 
     test('it should return an error when token is expired', async ({ request }) => {
-        const expired_token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImxlbGFuZC5vY29ubmVyQGdtYWlsLmNvbSIsInBhc3N3b3JkIjoic0owUUp5dkxQWkRSZng4IiwiaWF0IjoxNzg1Nzk2ODgxLCJleHAiOjE3ODU3OTc0ODF9.K-57b8Vd3IbCWZUh8qSpb63YqCp1UchJO2sEXyZp7h4';
-
         const updatedProduct = getProduct();
-        const response = await request.put(`https://serverest.dev/produtos/${productId}`, {
-            data: updatedProduct,
-            headers: {
-                'authorization': expired_token
-            }
-        });
+        const expired_token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImxlbGFuZC5vY29ubmVyQGdtYWlsLmNvbSIsInBhc3N3b3JkIjoic0owUUp5dkxQWkRSZng4IiwiaWF0IjoxNzg1Nzk2ODgxLCJleHAiOjE3ODU3OTc0ODF9.K-57b8Vd3IbCWZUh8qSpb63YqCp1UchJO2sEXyZp7h4';
+        const response = await productServiceInstance.updateProduct(productId, updatedProduct, expired_token);
         expect(response.status()).toBe(401);
+
         const responseData = await response.json();
         // console.log('Response Data:', responseData); // Log para depuração
         expect(responseData).toHaveProperty('message', 'Token de acesso ausente, inválido, expirado ou usuário do token não existe mais');
     });
 
     test('it should return an error when the url is invalid', async ({ request }) => {
-
         const updatedProduct = getProduct();
-        const response = await request.put(`https://serverest.dev/produtos/invalid-url`, {
-            data: updatedProduct,
-            headers: {
-                'authorization': authorization
-            }
-        });
+        const response = await productServiceInstance.updateProduct('invalid-url', updatedProduct, authorization);
         expect(response.status()).toBe(400);
+
         const responseData = await response.json();
         console.log('Response Data:', responseData); // Log para depuração
         expect(responseData).toHaveProperty('id', 'id deve ter exatamente 16 caracteres alfanuméricos');
