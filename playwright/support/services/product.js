@@ -34,10 +34,19 @@ export const productService = (request) => {
             }
         });
     };
+    const deleteProduct = async (productId, authorization) => {
+        return await request.delete(`https://serverest.dev/produtos/${productId}`, {
+            headers: {
+                'Content-Type': 'application/json',
+                'authorization': authorization
+            }
+        });
+    };
     return {
         createProduct,
         getProductById,
         getProducts,
-        updateProduct
+        updateProduct,
+        deleteProduct
     };
 };

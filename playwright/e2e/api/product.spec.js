@@ -798,50 +798,40 @@ test.describe('PUT /produtos/:id', () => {
 
 test.describe('DELETE /produtos/:id', () => {
     let authorization, productId;
+    let userServiceInstance, loginServiceInstance, productServiceInstance;
+    test.beforeEach(async ({ request }) => {
+        userServiceInstance = userService(request);
+        loginServiceInstance = loginService(request);
+        productServiceInstance = productService(request);
 
-    test.beforeAll(async ({ request }) => {
         // 1. Dados do usuário Administrador
         const user = getUser();
-
         // 2. Criar usuário admin
-        const response = await request.post('https://serverest.dev/usuarios', {
-            data: user
-        });
+        const response = await userServiceInstance.createUser(user);
         expect(response.ok()).toBeTruthy();
-
         // 3. Fazer login para capturar o Token
-        const loginResponse = await request.post('https://serverest.dev/login', {
-            data: {
-                email: user.email,
-                password: user.password
-            }
+        const loginResponse = await loginServiceInstance.postLogin({
+            email: user.email,
+            password: user.password
         });
         expect(loginResponse.ok()).toBeTruthy();
 
         const loginData = await loginResponse.json();
         authorization = loginData.authorization; // Armazena "Bearer <token>"
 
-        const product = getProduct();
-
         // 4. Criar produto
-        const createProductResponse = await request.post('https://serverest.dev/produtos', {
-            data: product,
-            headers: {
-                'authorization': authorization
-            }
-        });
+        const product = getProduct();
+        const createProductResponse = await productServiceInstance.createProduct(product, authorization);
         expect(createProductResponse.ok()).toBeTruthy();
         const createProductData = await createProductResponse.json();
+
         productId = createProductData._id;
     });
 
     test('it should delete a product by id', async ({ request }) => {
-        const response = await request.delete(`https://serverest.dev/produtos/${productId}`, {
-            headers: {
-                'authorization': authorization
-            }
-        });
+        const response = await productServiceInstance.deleteProduct(productId, authorization);
         expect(response.status()).toBe(200);
+
         const responseData = await response.json();
         // console.log('Response Data:', responseData); // Log para depuração
         expect(responseData).toHaveProperty('message', 'Registro excluído com sucesso');
@@ -849,12 +839,9 @@ test.describe('DELETE /produtos/:id', () => {
 
     test('it should return an error when the product id is empty', async ({ request }) => {
         const emptyProductId = '';
-        const response = await request.delete(`https://serverest.dev/produtos/${emptyProductId}`, {
-            headers: {
-                'authorization': authorization
-            }
-        });
+        const response = await productServiceInstance.deleteProduct(emptyProductId, authorization);
         expect(response.status()).toBe(405);
+
         const responseData = await response.json();
         // console.log('Response Data:', responseData); // Log para depuração
         expect(responseData).toHaveProperty('message', 'Não é possível realizar DELETE em /produtos/. Acesse https://serverest.dev para ver as rotas disponíveis e como utilizá-las.');
@@ -862,12 +849,9 @@ test.describe('DELETE /produtos/:id', () => {
 
     test('it should return an error when the product id is invalid', async ({ request }) => {
         const invalidProductId = 'invalid-id';
-        const response = await request.delete(`https://serverest.dev/produtos/${invalidProductId}`, {
-            headers: {
-                'authorization': authorization
-            }
-        });
+        const response = await productServiceInstance.deleteProduct(invalidProductId, authorization);
         expect(response.status()).toBe(400);
+
         const responseData = await response.json();
         // console.log('Response Data:', responseData); // Log para depuração
         expect(responseData).toHaveProperty('id', 'id deve ter exatamente 16 caracteres alfanuméricos');
@@ -875,15 +859,11 @@ test.describe('DELETE /produtos/:id', () => {
 
     test('it should return an error when the product id does not exist', async ({ request }) => {
         const nonExistentProductId = '1234567890123456';
-        const response = await request.delete(`https://serverest.dev/produtos/${nonExistentProductId}`, {
-            headers: {
-                'authorization': authorization
-            }
-        });
+        const response = await productServiceInstance.deleteProduct(nonExistentProductId, authorization);
         // Marca o teste como "fixme" apontando o ID do bug/card
         test.fixme(true, 'BUG: API returning 200 instead of 400 for non-existent product ID');
-
         expect(response.status()).toBe(400);
+
         const responseData = await response.json();
         // console.log('Response Data:', responseData); // Log para depuração
         expect(responseData).toHaveProperty('message', 'Produto não encontrado');
